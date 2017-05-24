@@ -1,0 +1,25 @@
+Package: slinky
+Type: Package
+Title: Utilities for working with LINCS data including clue.io API
+Version: 0.1
+Date: 2017-05-23
+Author: Eric J. Kort
+Maintainer: Eric J. Kort  <eric.kort@vai.org>
+Description: Wrappers to clue.io REST API as well as helpers to dealing with LINCS gctx files
+License: MIT
+Depends: 
+    R (>= 3.1.0),
+    httr,
+    jsonlite,
+    rhdf5,
+    foreach,
+    plyr,
+    iterators,
+    parallel
+Collate: 
+    'slinky.R'
+    'slinky_package.R'
+Suggests: 
+    testthat
+RoxygenNote: 6.0.1
+LazyData: true

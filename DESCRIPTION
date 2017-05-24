@@ -7,7 +7,7 @@ Author: Eric J. Kort
 Maintainer: Eric J. Kort  <eric.kort@vai.org>
 Description: Wrappers to clue.io REST API as well as helpers to dealing with LINCS gctx files
 License: MIT
-Depends: 
+Depends:
     R (>= 3.1.0),
     httr,
     jsonlite,
@@ -16,10 +16,13 @@ Depends:
     plyr,
     iterators,
     parallel
-Collate: 
+Collate:
     'slinky.R'
     'slinky_package.R'
-Suggests: 
-    testthat
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown
 RoxygenNote: 6.0.1
 LazyData: true
+VignetteBuilder: knitr

@@ -1,0 +1,21 @@
+---
+title: "Intro to LINCS analysis with the slinky package"
+author: "Eric J. Kort"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{"Intro to LINCS analysis with the slinky package"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+In this vignette we perform some basic analyses using the L1000 data expression data from the LINCS project.  To complete this vignette you will need access to the LINCS data file.  The datafile is quite large (~40GB), and a multithreaded download client makes this much faster.  For example, you might try:
+
+```{r, engine = 'bash', eval=FALSE}
+aria2c -x 8 -s 8 https://goo.gl/3TigFI
+gzip -d *.gz
+```
+
+Details on the LINCS data files are available here: https://docs.google.com/document/d/1q2gciWRhVCAAnlvF2iRLuJ7whrGP6QjpsCMq1yWz7dU
+
+

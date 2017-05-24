@@ -31,4 +31,3 @@ slinky.Rcheck
 
 #temporary data files
 data/**
-inst/doc

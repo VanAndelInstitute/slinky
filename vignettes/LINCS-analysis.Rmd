@@ -1,58 +1,57 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "LINCS analysis with slinky"
+author: "Eric J. Kort"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{"LINCS analysis with slinky"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+In this vignette we perform some basic analyses using the L1000 data expression data from the LINCS project.  To complete this vignette you will need access to the LINCS Phase I Level 3 data file.  This file may already be available from your local bioinformatics core.  If you need or want to download it yourself, note that the datafile is quite large (~40GB). A robust multithreaded download client makes this much faster and less prone to failures due to connectivity hiccups.  For example, you might try:
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
-
-## Vignette Info
-
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r, engine = 'bash', eval=FALSE}
+aria2c -x 8 -s 8 https://goo.gl/3TigFI
+gzip -d *.gz
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+Details on the LINCS data files are available here: https://docs.google.com/document/d/1q2gciWRhVCAAnlvF2iRLuJ7whrGP6QjpsCMq1yWz7dU
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+Secondly, access to the LINCS api and clue.io requires a user key.  You can provide your key directly in the call to `Slinky$new("your_key_here")`, or define the environment variable `CLUE_API_KEY` and set it to your key.
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+## Data selection
 
-## More Examples
+It is typically desirable to identify a subset of the L1000 data for analysis.  Here we will restrict our analysis to instances treated with FDA approved compounds that are part of the "gold" subset of highly consistent instances (as defined by LINCS).  We will also restrict our analysis to the 978 genes directly measured by the LINCS project (i.e. we will exclude the extrapolated data).  Definitively identifying FDA approved drugs is a little tricky due to subtle (and not so subtle) differences in vocabularies, but we exploit the "repositioning" data available at the `rep_drugs` endpoint to achieve our ends.  Note the "inq" syntax used below.  This is a vernacular of the `loopback` framework on which the clue.io service is built.
 
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
 
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r, message=F, warning=F}
+library(slinky)
+sl <- Slinky$new() # assumes environment variable CLUE_API_KEY is set.
+fda <- sl$fetch("rep_drugs", where_clause=list("status_source"=list(like = "FDA Orange"),
+                                                   "final_status"="Launched",
+                                                   "animal_only"="0",
+                                                   "in_cmap"=TRUE))
+
+
+
 ```
 
-Also a quote using `>`:
+With this list of putative FDA approved agents profiled by LINCS in hand, we can now retrieve details about the instances perturbed by these agents.  This call will include all the compound names in a single query.  The resulting query is over 9000 characters.  This is above the limit (at least anecdotally) imposed by some browsers.  However, neither the `httr` client library we are using, nor the clue.io server seem to be bothered by a query this long, and it is certainly more performant than submitting many separate requests.
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+Related, note `inq` syntax used below to provide an array of possible values to match.  This is a vernacular of the `loopback` framework on which the clue.io service is built.
+
+Finally, note that when multiple values are present for a given field (i.e., the JSON returned by clue.io contained an array of values), these values have been concatenated by the `|` character so that they could be placed in a single column of the dataframe.  Without this concatenation, a well formed `data.frame` could not be reliably returned by `fetch`.
+
+```{r}
+fda_pert <- sl$fetch("perts", 
+                     fields = c("pert_iname", "sig_id_gold"), 
+                     where_clause=list("pert_type"="trt_cp", 
+                                       "pert_iname"=list("inq"=fda$pert_iname)))
+
+# strsplit requires a regular expression to split on, which in turn requires
+# the double escape as shown below.
+inst_fda_gold <- unique(unlist(strsplit(fda_pert$sig_id_gold, split = "\\|")))
+length(inst_fda_gold)
+```
+

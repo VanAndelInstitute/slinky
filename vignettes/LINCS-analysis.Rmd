@@ -56,9 +56,90 @@ inst_fda_gold <- unique(unlist(strsplit(fda_pert$distil_id, split = "\\|")))
 length(inst_fda_gold)
 ```
 
-Now we can get the distil_ids for the instances in our datafile:
+Finally, we can get a list of the 978 landmark genes from the genes endpoint:
+
+```{r}
+l1000 <- sl$fetch("genes", fields=c("entrez_id", "gene_symbol"), where_clause=list("l1000_type" = "landmark"))
 
 ```
-tt <- h5read("/media/primary/data2/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx", name = "0/META/COL/id", index=list(1))
+
+## Loading data from gctx file
+
+Now that we know which instances and which genes we are interested in, we are ready to load the landmark gene expression data from the gctx file.  First we shall identify the columns and rows we want to fetch.  Here we assume the level 3 data is saved in the directory `~/lincs_data`.  Fetching the roughly 32,000 x 1000 matrix from the gctx file takes a couple of minutes, presumably in part because the columns are not at all contiguous.   If we save the resulting data subset as RDS, it can be loaded in just a couple seconds.  
+
+```{r eval=FALSE}
+gctx.file <- "~/lincs_data/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"
+
+ids <- sl$gctx.colnames(gctx.file)
+col.ix <- which(ids %in% inst_fda_gold)
+ids <- ids[col.ix]
+
+genes <- sl$gctx.rownames(gctx.file)
+row.ix <- which(genes %in% l1000$entrez_id) # it's the first 978 genes in the data matrix!
+genes <- genes[row.ix]
+
+data <- sl$gctx.read(gctx.file, index = list(row.ix, col.ix))
+rownames(data) <- genes
+colnames(data) <- ids
+saveRDS(data, compress="gzip", file="l1000_fda.rds")
+
+```
+
+While you can generate the file as shown above, for convenience the resulting RDS file is also available for download from the `locket` repository on github (https://github.com/erikor/locket/raw/master/l1000_fda.rds).  Downloading and loading this datafile takes 11 seconds on my system.
+
+```{r}
+  link <- "https://github.com/erikor/locket/raw/master/l1000_fda.rds"
+  temp <- tempfile()
+  download.file(link,temp,method = "curl", extra = "-L", quiet=TRUE)
+  fda <- readRDS(temp)
+  unlink(temp)
+```
+
+Next we are going to need access to the vehicle control samples.  We can fetch these in the same was as the treated samples above.  In this example, we will speed up the metadata fetch a bit by parallelization.
+
+```{r eval=FALSE}
+cl <- makeCluster(8)
+dmso_pert <- sl$fetch("profiles", 
+                     fields = c("det_plate", "distil_id"), 
+                     where_clause=list("pert_type"="ctl_vehicle", 
+                                       "pert_id"="DMSO"), cl=cl)
+stopCluster(cl)
+
+ids <- sl$gctx.colnames(gctx.file)
+col.ix <- which(ids %in% dmso_pert$distil_id)
+ids <- ids[col.ix]
+
+data <- sl$gctx.read(gctx.file, index = list(row.ix, col.ix))
+rownames(data) <- genes
+colnames(data) <- ids
+
+saveRDS(data, compress="gzip", file="l1000_dmso.rds")
+```
+
+Again, by the miracle of television, this file is available via the `locket` github repository.
+
+```{r}
+  link <- "https://github.com/erikor/locket/raw/master/l1000_dmso.rds"
+  temp <- tempfile()
+  download.file(link,temp,method = "curl", extra = "-L", quiet=TRUE)
+  dmso <- readRDS(temp)
+  unlink(temp)
+```
+
+Now we have the pieces we need to calculate robust z-scores for each instance in our fda dataset vs. same-plate vehicle control.
+
+```{r}
+plates <- gsub(":.*", "", colnames(dmso))
+ctrl <- t(apply(dmso, 1, function(x) { tapply(x, INDEX = plates, mean)}))
+
+cl<-makeCluster(8)
+registerDoParallel(cl)
+zs <- foreach(i = 1:ncol(fda), .combine = cbind) %dopar% {
+  plate <- gsub(":.*", "", colnames(fda)[i])
+  fc <- fda[,i] / ctrl[,plate]
+  (fc - median(fc)) / mad(fc)
+}
+stopCluster(cl)
+colnames(zs) <- colnames(fda)
 
 ```

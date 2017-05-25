@@ -87,7 +87,7 @@ Slinky$methods(fetch = function(path, fields="", where_clause="", limit=0, count
   dat <- foreach(i=1:ceiling(count/1000), 
                  .combine = rbind.fill,
                  .export=c(".self"),
-                 .packages = c("httr", "jsonlite")) %do% 
+                 .packages = c("httr", "jsonlite")) %dopar% 
   {
     if(i * 1000 > limit & limit > 0) {
       lim_filter <- limit %% 1000
@@ -127,7 +127,7 @@ Slinky$methods(gctx.colnames = function(file, index=NULL) {
   }
   if(!length(index)) {
     info <- h5dump(file, load=FALSE)
-    index <- list(1:tt$`0`$META$COL$id$dim)    
+    index <- list(1:info$`0`$META$COL$id$dim)    
   }
   h5read(file, name = "0/META/COL/id", index=index)
 })
@@ -148,7 +148,7 @@ Slinky$methods(gctx.rownames = function(file, index=NULL) {
   }
   if(!length(index)) {
     info <- h5dump(file, load=FALSE)
-    index <- list(1:tt$`0`$META$ROW$id$dim)    
+    index <- list(1:info$`0`$META$ROW$id$dim)    
   }
   h5read(file, name = "0/META/ROW/id", index=index)
 })
@@ -170,6 +170,10 @@ Slinky$methods(gctx.read = function(file, index=NULL) {
   rownames(data) <- .self$gctx.rownames(file, index=list(index[[1]]))
   data
 })
+
+
+#https://api.clue.io/api/profiles?filter={%22where%22:{%22distil_id%22:%22ASG001_MCF7_24H_X1_B7_DUO52HI53LO:A17%22}}&user_key=fe5dfc18a374f94119ea6847c439c2d2
+#"pert_vehicle": "DMSO",
 
 ## Test gctx file containing tiny subset of LINCS data created as follows
 #

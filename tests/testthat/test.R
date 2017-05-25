@@ -2,9 +2,10 @@
 # or ... test_dir("tests/testthat")
 
 library(doParallel)
-Sys.setenv(CLUE_API_KEY="db1db72b80bcb8ed812a2a7af0198bbb")
 
-sl <- Slinky$new()
+# fetch the clue demo key for testing purposes.  Please use your own key for any production work.
+user_key <- content(httr::GET("https://api.clue.io/temp_api_key"), as="parsed")$user_key
+sl <- Slinky$new(user_key)
 
 context("Class instantiation")
 test_that("Object can be created", {  
@@ -52,4 +53,23 @@ context("Signatures API")
 test_that("A signature can be retrieved", {  
   tt <- sl$fetch("sigs", where_clause=list(pert_desc="sirolimus"), fields=c("is_gold", "distil_id"))
   expect_equal(nrow(tt),  202)
+})
+
+context("GCTX file I/O")
+gctx <- system.file("extdata", "demo.gctx", package="slinky")
+test_that("Column names can be retrieved", {  
+  tt <- sl$gctx.colnames(gctx, index=list(1:3))
+  expect_equal(length(tt),  3)
+  expect_equal(tt[1], "CPC005_A375_6H_X1_B3_DUO52HI53LO:K0")
+})
+test_that("Row names can be retrieved", {  
+  tt <- sl$gctx.rownames(gctx, index=list(1:3))
+  expect_equal(length(tt),  3)
+  expect_equal(tt[1], 5720)
+})
+test_that("Matrix data can be read", {  
+  tt <- sl$gctx.read(gctx, index=list(1:3, 5:10))
+  expect_equal(nrow(tt), 3)
+  expect_equal(ncol(tt), 6)
+  expect_equal(colnames(tt)[6], "CPC005_A375_6H_X1_B3_DUO52HI53LO:K2")
 })

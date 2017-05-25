@@ -44,14 +44,21 @@ Related, note `inq` syntax used below to provide an array of possible values to 
 Finally, note that when multiple values are present for a given field (i.e., the JSON returned by clue.io contained an array of values), these values have been concatenated by the `|` character so that they could be placed in a single column of the dataframe.  Without this concatenation, a well formed `data.frame` could not be reliably returned by `fetch`.
 
 ```{r}
-fda_pert <- sl$fetch("perts", 
-                     fields = c("pert_iname", "sig_id_gold"), 
+fda_pert <- sl$fetch("sigs", 
+                     fields = c("pert_desc", "distil_id"), 
                      where_clause=list("pert_type"="trt_cp", 
+                                       "is_gold"=TRUE,
                                        "pert_iname"=list("inq"=fda$pert_iname)))
 
 # strsplit requires a regular expression to split on, which in turn requires
 # the double escape as shown below.
-inst_fda_gold <- unique(unlist(strsplit(fda_pert$sig_id_gold, split = "\\|")))
+inst_fda_gold <- unique(unlist(strsplit(fda_pert$distil_id, split = "\\|")))
 length(inst_fda_gold)
 ```
 
+Now we can get the distil_ids for the instances in our datafile:
+
+```
+tt <- h5read("/media/primary/data2/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx", name = "0/META/COL/id", index=list(1))
+
+```

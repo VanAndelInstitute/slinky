@@ -25,9 +25,22 @@ Secondly, access to the LINCS api and clue.io requires a user key.  You can prov
 It is typically desirable to identify a subset of the L1000 data for analysis.  Here we will restrict our analysis to instances treated with FDA approved compounds that are part of the "gold" subset of highly consistent instances (as defined by LINCS).  We will also restrict our analysis to the 978 genes directly measured by the LINCS project (i.e. we will exclude the extrapolated data).  Definitively identifying FDA approved drugs is a little tricky due to subtle (and not so subtle) differences in vocabularies, but we exploit the "repositioning" data available at the `rep_drugs` endpoint to achieve our ends.  Note the "inq" syntax used below.  This is a vernacular of the `loopback` framework on which the clue.io service is built.
 
 
-```{r, message=F, warning=F}
+```{r, echo=TRUE, eval=FALSE, message=F, warning=F}
 library(slinky)
 sl <- Slinky$new() # assumes environment variable CLUE_API_KEY is set.
+fda <- sl$fetch("rep_drugs", where_clause=list("status_source"=list(like = "FDA Orange"),
+                                                   "final_status"="Launched",
+                                                   "animal_only"="0",
+                                                   "in_cmap"=TRUE))
+
+
+
+```
+
+```{r, echo=FALSE, message=F, warning=F}
+library(slinky)
+user_key <- content(httr::GET("https://api.clue.io/temp_api_key"), as="parsed")$user_key
+sl <- Slinky$new(user_key)
 fda <- sl$fetch("rep_drugs", where_clause=list("status_source"=list(like = "FDA Orange"),
                                                    "final_status"="Launched",
                                                    "animal_only"="0",
@@ -136,7 +149,8 @@ Again, by the miracle of television, this file is available via the `locket` git
 
 Now we have the pieces we need to calculate robust z-scores for each instance in our fda dataset vs. same-plate vehicle control.
 
-```{r}
+```{r, eval=FALSE, echo=TRUE}
+library("doParallel")
 plates <- gsub(":.*", "", colnames(dmso))
 ctrl <- t(apply(dmso, 1, function(x) { tapply(x, INDEX = plates, mean)}))
 
@@ -149,6 +163,26 @@ zs <- foreach(i = 1:ncol(fda), .combine = cbind) %dopar% {
 }
 stopCluster(cl)
 colnames(zs) <- colnames(fda)
-saveRDS(zs, file="/media/primary/data2/fda_zscore.rds")
+rownames(zs) <- rownames(fda)
+zs <- zs * 1000 # save space on github
+saveRDS(zs, file="l1000_fda_zsvc_x1000.rds", compress="gzip")
 
+```
+
+Again, this file is available via the `locket` github repository.
+
+## Gene set enrichment
+
+Signatures of up- and down-regulated genes related to some perturbation or phenotype of interest can be scored against expression data using the `slinky` package.  (A future revision will describe approaches to defining such signatures out of the LINCS data itself).  Below is a trivial example of generating a gene signature and then scoring it against a tiny set of test data (the first 50 columns of the FDA zscore data from above), using two different enrichment statistics (the connectivity core of Lamb et al. as used by the original CMAP project, and the XSUM statistic described by Agarwal et al.)
+
+```{r}
+
+zsvc <- system.file("extdata", "test_inst_zsvc_x1000.rds", package="slinky")
+info <- system.file("extdata", "test_inst_info.rds", package="slinky")
+data <- readRDS(zsvc) / 1000
+up <- rownames(data)[order(data[,1], decreasing = TRUE)][1:25]
+down <- rownames(data)[order(data[,1])][1:25]
+cs <- sl$score(data, "ks", up=up, down=down)
+xs <- sl$score(data, "xsum", up=up, down=down)
+plot(cs, xs, pch=19)
 ```

@@ -73,3 +73,26 @@ test_that("Matrix data can be read", {
   expect_equal(ncol(tt), 6)
   expect_equal(colnames(tt)[6], "CPC005_A375_6H_X1_B3_DUO52HI53LO:K2")
 })
+
+context("Enrichment score calc")
+zsvc <- system.file("extdata", "test_inst_zsvc_x1000.rds", package="slinky")
+info <- system.file("extdata", "test_inst_info.rds", package="slinky")
+test_that("KS statistic can be calculated", {  
+  data <- readRDS(zsvc) / 1000
+  drugs <- readRDS(info)
+#  ix <- match(colnames(data), drugs[,2])
+#  drugs <- drugs[ix,]
+  up <- rownames(data)[order(data[,1], decreasing = TRUE)][1:25]
+  down <- rownames(data)[order(data[,1])][1:25]
+  s <- sl$score(data, "ks", up=up, down=down)
+  expect_equivalent(s[1], 1)
+  expect_equivalent(s[2],  0.47485834207765)
+})
+test_that("xsum statistic can be calculated", {  
+  data <- readRDS(zsvc) / 1000
+  drugs <- readRDS(info)
+  up <- rownames(data)[order(data[,1], decreasing = TRUE)][1:25]
+  down <- rownames(data)[order(data[,1])][1:25]
+  s <- sl$score(data, "xsum", up=up, down=down)
+  expect_equivalent(s[1], 185.634)
+})

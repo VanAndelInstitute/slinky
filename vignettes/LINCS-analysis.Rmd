@@ -50,10 +50,18 @@ fda_pert <- sl$fetch("sigs",
                                        "is_gold"=TRUE,
                                        "pert_iname"=list("inq"=fda$pert_iname)))
 
-# strsplit requires a regular expression to split on, which in turn requires
-# the double escape as shown below.
-inst_fda_gold <- unique(unlist(strsplit(fda_pert$distil_id, split = "\\|")))
-length(inst_fda_gold)
+# expand the delimited distil_id values
+unwrap <- function(x) {
+  ids <- unlist(strsplit(x[1], split = "\\|"))
+  res <- cbind(x[2], ids)
+  colnames(res) <- c("pert_desc", "distil_id")
+  return(res)
+}
+
+#inst_fda_gold <- unique(unlist(strsplit(fda_pert$distil_id, split = "\\|")))
+inst_fda_gold <- do.call(rbind, apply(fda_pert, 1, unwrap))
+rownames(inst_fda_gold) <- NULL
+
 ```
 
 Finally, we can get a list of the 978 landmark genes from the genes endpoint:
@@ -71,7 +79,7 @@ Now that we know which instances and which genes we are interested in, we are re
 gctx.file <- "~/lincs_data/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"
 
 ids <- sl$gctx.colnames(gctx.file)
-col.ix <- which(ids %in% inst_fda_gold)
+col.ix <- which(ids %in% inst_fda_gold$distil_id)
 ids <- ids[col.ix]
 
 genes <- sl$gctx.rownames(gctx.file)
@@ -141,5 +149,6 @@ zs <- foreach(i = 1:ncol(fda), .combine = cbind) %dopar% {
 }
 stopCluster(cl)
 colnames(zs) <- colnames(fda)
+saveRDS(zs, file="/media/primary/data2/fda_zscore.rds")
 
 ```

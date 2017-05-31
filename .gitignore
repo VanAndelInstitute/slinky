@@ -18,6 +18,9 @@ R/.Rproj.user/
 lib/R/vignettes/*.html
 lib/R/vignettes/*.pdf
 
+# all pdf
+*.pdf
+
 # R CMD CHECK outtput
 slinky.Rcheck
 

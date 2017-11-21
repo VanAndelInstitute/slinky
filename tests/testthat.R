@@ -1,4 +1,4 @@
 library(testthat)
-library(clue)
+library(slinky)
 
-test_check("clue")
+test_check("slinky")

@@ -5,20 +5,25 @@ Version: 0.1
 Date: 2017-05-23
 Author: Eric J. Kort
 Maintainer: Eric J. Kort  <eric.kort@vai.org>
-Description: Wrappers to clue.io REST API as well as helpers to dealing with LINCS gctx files
-License: MIT
+Description: Wrappers to clue.io REST API as well as helpers to dealing with LINCS gctx files.
+License: MIT + file LICENSE
 Depends:
     R (>= 3.1.0),
+Imports:
+    Biobase,
+    foreach,
     httr,
     jsonlite,
-    rhdf5,
-    foreach,
+    parallel,
     plyr,
-    iterators,
-    parallel
+    methods,
+    rhdf5
 Collate:
     'slinky.R'
+    'slinky_download.R'
+    'slinky_scoring.R'
     'slinky_package.R'
+    'slinky_eset.R'
 Suggests:
     testthat,
     knitr,

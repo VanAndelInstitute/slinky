@@ -28,7 +28,7 @@ It is typically desirable to identify a subset of the L1000 data for analysis.  
 ```{r, echo=TRUE, eval=FALSE, message=F, warning=F}
 library(slinky)
 sl <- Slinky$new() # assumes environment variable CLUE_API_KEY is set.
-fda <- sl$fetch("rep_drugs", where_clause=list("status_source"=list(like = "FDA Orange"),
+fda <- sl$query("rep_drugs", where_clause=list("status_source"=list(like = "FDA Orange"),
                                                    "final_status"="Launched",
                                                    "animal_only"="0",
                                                    "in_cmap"=TRUE))
@@ -37,11 +37,11 @@ fda <- sl$fetch("rep_drugs", where_clause=list("status_source"=list(like = "FDA 
 
 ```
 
-```{r, echo=FALSE, message=F, warning=F}
+```{r, echo=FALSE, message=F, warning=F, eval=FALSE}
 library(slinky)
-user_key <- content(httr::GET("https://api.clue.io/temp_api_key"), as="parsed")$user_key
+user_key <- httr::content(httr::GET("https://api.clue.io/temp_api_key"), as="parsed")$user_key
 sl <- Slinky$new(user_key)
-fda <- sl$fetch("rep_drugs", where_clause=list("status_source"=list(like = "FDA Orange"),
+fda <- sl$query("rep_drugs", where_clause=list("status_source"=list(like = "FDA Orange"),
                                                    "final_status"="Launched",
                                                    "animal_only"="0",
                                                    "in_cmap"=TRUE))
@@ -54,11 +54,11 @@ With this list of putative FDA approved agents profiled by LINCS in hand, we can
 
 Related, note `inq` syntax used below to provide an array of possible values to match.  This is a vernacular of the `loopback` framework on which the clue.io service is built.
 
-Finally, note that when multiple values are present for a given field (i.e., the JSON returned by clue.io contained an array of values), these values have been concatenated by the `|` character so that they could be placed in a single column of the dataframe.  Without this concatenation, a well formed `data.frame` could not be reliably returned by `fetch`.
+Finally, note that when multiple values are present for a given field (i.e., the JSON returned by clue.io contained an array of values), these values have been concatenated by the `|` character so that they could be placed in a single column of the dataframe.  Without this concatenation, a well formed `data.frame` could not be reliably returned by `query`.
 
-```{r}
-fda_pert <- sl$fetch("sigs", 
-                     fields = c("pert_desc", "distil_id"), 
+```{r, eval=FALSE}
+fda_pert <- sl$query("sigs", 
+                     fields = c("pert_iname", "distil_id"), 
                      where_clause=list("pert_type"="trt_cp", 
                                        "is_gold"=TRUE,
                                        "pert_iname"=list("inq"=fda$pert_iname)))
@@ -79,8 +79,8 @@ rownames(inst_fda_gold) <- NULL
 
 Finally, we can get a list of the 978 landmark genes from the genes endpoint:
 
-```{r}
-l1000 <- sl$fetch("genes", fields=c("entrez_id", "gene_symbol"), where_clause=list("l1000_type" = "landmark"))
+```{r, eval=FALSE}
+l1000 <- sl$query("genes", fields=c("entrez_id", "gene_symbol"), where_clause=list("l1000_type" = "landmark"))
 
 ```
 
@@ -88,7 +88,7 @@ l1000 <- sl$fetch("genes", fields=c("entrez_id", "gene_symbol"), where_clause=li
 
 Now that we know which instances and which genes we are interested in, we are ready to load the landmark gene expression data from the gctx file.  First we shall identify the columns and rows we want to fetch.  Here we assume the level 3 data is saved in the directory `~/lincs_data`.  Fetching the roughly 32,000 x 1000 matrix from the gctx file takes a couple of minutes, presumably in part because the columns are not at all contiguous.   If we save the resulting data subset as RDS, it can be loaded in just a couple seconds.  
 
-```{r eval=FALSE}
+```{r, eval=FALSE}
 gctx.file <- "~/lincs_data/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"
 
 ids <- sl$gctx.colnames(gctx.file)
@@ -108,7 +108,7 @@ saveRDS(data, compress="gzip", file="l1000_fda.rds")
 
 While you can generate the file as shown above, for convenience the resulting RDS file is also available for download from the `locket` repository on github (https://github.com/erikor/locket/raw/master/l1000_fda.rds).  Downloading and loading this datafile takes 11 seconds on my system.
 
-```{r}
+```{r, eval=FALSE}
   link <- "https://github.com/erikor/locket/raw/master/l1000_fda.rds"
   temp <- tempfile()
   download.file(link,temp,method = "curl", extra = "-L", quiet=TRUE)
@@ -118,9 +118,9 @@ While you can generate the file as shown above, for convenience the resulting RD
 
 Next we are going to need access to the vehicle control samples.  We can fetch these in the same was as the treated samples above.  In this example, we will speed up the metadata fetch a bit by parallelization.
 
-```{r eval=FALSE}
+```{r, eval=FALSE}
 cl <- makeCluster(8)
-dmso_pert <- sl$fetch("profiles", 
+dmso_pert <- sl$query("profiles", 
                      fields = c("det_plate", "distil_id"), 
                      where_clause=list("pert_type"="ctl_vehicle", 
                                        "pert_id"="DMSO"), cl=cl)
@@ -139,7 +139,7 @@ saveRDS(data, compress="gzip", file="l1000_dmso.rds")
 
 Again, by the miracle of television, this file is available via the `locket` github repository.
 
-```{r}
+```{r, eval=FALSE}
   link <- "https://github.com/erikor/locket/raw/master/l1000_dmso.rds"
   temp <- tempfile()
   download.file(link,temp,method = "curl", extra = "-L", quiet=TRUE)
@@ -175,7 +175,7 @@ Again, this file is available via the `locket` github repository.
 
 Signatures of up- and down-regulated genes related to some perturbation or phenotype of interest can be scored against expression data using the `slinky` package.  (A future revision will describe approaches to defining such signatures out of the LINCS data itself).  Below is a trivial example of generating a gene signature and then scoring it against a tiny set of test data (the first 50 columns of the FDA zscore data from above), using two different enrichment statistics (the connectivity core of Lamb et al. as used by the original CMAP project, and the XSUM statistic described by Agarwal et al.)
 
-```{r}
+```{r, eval=FALSE}
 
 zsvc <- system.file("extdata", "test_inst_zsvc_x1000.rds", package="slinky")
 info <- system.file("extdata", "test_inst_info.rds", package="slinky")

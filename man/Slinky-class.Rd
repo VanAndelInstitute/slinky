@@ -14,35 +14,20 @@ A Reference Class to encapsulate LINCS methods
 \item{\code{.user_key}}{private field populated at instantiation}
 
 \item{\code{.base}}{private field populated at instantiation}
+
+\item{\code{.gctx}}{private field optionally populated at instantiation specifying path to gctx file}
 }}
 
 \section{Methods}{
 
 \describe{
-\item{\code{count(path, where_clause = "")}}{Wrapper for Slinky.io REST calls to retrieve record counts
-\subsection{Parameters}{
-\itemize{
-\item{\code{path} The endpoint to query.}
-\item{\code{fields} Optional vector of fields to return.}
-\item{\code{where_clause} Optional where_clause clause.  Must be named list (e.g. list(field='value')}
-}}
-\subsection{Return Value}{Count of records satisfying query}}
+\item{\code{close()}}{Close any open HDF5 (gctx) file connections.
+\subsection{Return Value}{None.  Called for side effect of closing connections.}}
 
-\item{\code{fetch(path, fields = "", where_clause = "", limit = 0, count = FALSE,
-  cl = NULL)}}{Wrapper for Slinky.io REST calls
+\item{\code{colnames(file = NULL, index = NULL)}}{Retrieve column names from LINCS gctx datafile
 \subsection{Parameters}{
 \itemize{
-\item{\code{path} The endpoint to query.}
-\item{\code{fields} Optional vector of fields to return.}
-\item{\code{where_clause} Optional where_clause clause.  Must be named list (e.g. list(field='value')}
-\item{\code{cl} Optional cluster object to parallelize data retrieval.}
-}}
-\subsection{Return Value}{Data returned by Slinky.api as a data.frame}}
-
-\item{\code{gctx.colnames(file, index = NULL)}}{Retrieve column names from LINCS gctx datafile
-\subsection{Parameters}{
-\itemize{
-\item{\code{file} Path to gctx file.}
+\item{\code{file} Path to gctx file.  May be omitted if specified when Slinky object is created.}
 \item{\code{index} Optional list providing which colnames to return.}
 }}
 \subsection{Return Value}{Names of columns from gctx file}
@@ -50,19 +35,71 @@ A Reference Class to encapsulate LINCS methods
 row level metadata as well as the expression data itself.  If `index` is provided, it should be a list of extent one providing 
 a vector of column indices for which to retrn ids.  For example, index=list(c(1,2,3,10)).}}
 
-\item{\code{gctx.read(file, index = NULL)}}{Read portions of data matrix from LINCS gctx datafile
+\item{\code{count(endpoint = c("sigs", "cells", "genes", "perts", "plates", "profiles",
+  "rep_drugs", "pcls"), where_clause = "")}}{Wrapper for Slinky.io REST calls to retrieve record counts
 \subsection{Parameters}{
 \itemize{
-\item{\code{file} Path to gctx file.}
+\item{\code{endpoint} The endpoint to query, default is 'sigs'.}
+\item{\code{where_clause} Optional where_clause clause.  Must be named list (e.g. list(field='value')}
+}}
+\subsection{Return Value}{Count of records satisfying query}}
+
+\item{\code{download(type = c("expression", "info", "readme"), level = 3, phase = 1,
+  prompt = TRUE)}}{Convenience function to retrieve LINCS L1000 data and metadata files.
+\subsection{Parameters}{
+\itemize{
+\item{\code{type} Type of file to retrieve: expression, info (instance level), or readme file. }
+\item{\code{level} Level of data desired (if type is expression): 2, 3 (default), 4, or 5.}
+\item{\code{phase} What phase of data is desired, 1 of 2?  Currently only 1 is supported.}
+\item{\code{prompt} Warn before downloading huge files?  Set to FALSE for non-interactive mode.}
+}}
+\subsection{Return Value}{None}
+\subsection{Details}{Note that most of these files are very large and may make many minutes to several hours to download.
+          A fast and reliable connection is highly recommended.}}
+
+\item{\code{initialize(key = NULL, gctx = NULL)}}{Create a Slinky object
+\subsection{Parameters}{
+\itemize{
+\item{\code{key} Your clue.io user key.  If not specified, CLUE_API_KEY environment variable must be set.}
+\item{\code{gctx} Optional path to gctx file containing data you want to work with.  Can be specified later if desired.}
+}}
+\subsection{Return Value}{Slinky object}}
+
+\item{\code{query(endpoint = c("sigs", "cells", "genes", "perts", "plates", "profiles",
+  "rep_drugs", "pcls"), fields = "", where_clause = "", limit = 0,
+  count = FALSE, cl = NULL)}}{Wrapper for Slinky.io REST calls
+\subsection{Parameters}{
+\itemize{
+\item{\code{endpoint} The endpoint to query.  Default is 'sigs'.}
+\item{\code{fields} Optional vector of fields to return.}
+\item{\code{where_clause} Optional where_clause clause.  Must be named list (e.g. list(field='value')}
+\item{\code{cl} Optional cluster object to parallelize data retrieval.}
+}}
+\subsection{Return Value}{Data returned by Slinky.api as a data.frame}}
+
+\item{\code{query.instances(where_clause = NULL)}}{Convenience wrapper to query function to retrieve instance ids meeting specified criteria
+\subsection{Parameters}{
+\itemize{
+\item{\code{where_clause} Filter terms, as a list of terms, e.g. list(pert_type='trt_cp', 'is_gold'=TRUE).  Terms will be joined by AND logic.}
+}}
+\subsection{Return Value}{Vector of ids matching criteria.}
+\subsection{Details}{This is a convenience wrapper to the signature API which queries clue.io and unwraps response. }}
+
+\item{\code{readGCTX(file = NULL, index = NULL)}}{Read portions of data matrix from LINCS gctx datafile
+\subsection{Parameters}{
+\itemize{
+\item{\code{file} Path to gctx file.  May be omitted if specified when Slinky object is created.}
 \item{\code{index} list of extent 2 providing which columns and rows to return.  Since the LINCS datasets are relatively
 massive, the index argument is required to avoid inadvertently trying to slurp the entire dataset into memory.}
 }}
-\subsection{Return Value}{Matrix of expression data with rownames and colnames appropriately set}}
+\subsection{Return Value}{Matrix of expression data with rownames and colnames appropriately set}
+\subsection{Details}{Failure to close connections will result in warning messages at garbage collection.  
+Calling close prior to removing object will close connections and prevent these messages.}}
 
-\item{\code{gctx.rownames(file, index = NULL)}}{Retrieve rown names from LINCS gctx datafile
+\item{\code{rownames(file = NULL, index = NULL)}}{Retrieve rown names from LINCS gctx datafile
 \subsection{Parameters}{
 \itemize{
-\item{\code{file} Path to gctx file.}
+\item{\code{file} Path to gctx file.  May be omitted if specified when Slinky object is created.}
 \item{\code{index} Optional list providing which rownames to return.}
 }}
 \subsection{Return Value}{Names of rows from gctx file}
@@ -78,5 +115,18 @@ a vector of row indices for which to retrn ids.  For example, index=list(c(1,2,3
 \item{\code{...} Additional arguments for \code{method}.}
 }}
 \subsection{Return Value}{Vectors of scores, one per column of data}}
+
+\item{\code{toEset(gctx = NULL, index = NULL, where_clause = NULL, fields = NULL,
+  info_file = NULL)}}{Convert data from gctx file to eset, pulling metadata from various sources
+\subsection{Parameters}{
+\itemize{
+\item{\code{gctx} Path to gctx file.  May be omitted if already set when Slinky object was instantiated.}
+\item{\code{index} Index of extent 2 giving the row and column indices to pull from the gctx file.}
+\item{\code{where_clause} Query to use to determine which columns to pull from gctx file.}
+\item{\code{fields} Fields to include in the expression set's phenodata.  Default is all available.}
+\item{\code{info_file} Optional path to GSE92742_Broad_LINCS_inst_info.txt.  Default is to look in the library's 
+                         installation folder and current working directory, and then download it if not found.}}}
+\subsection{Return Value}{Object of type eSet containing expression and pheno data.}
+\subsection{Details}{You must specify either index or where_clause to avoid inadvertently slurping in entire gctx file.}}
 }}
 

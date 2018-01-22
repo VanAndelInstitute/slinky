@@ -21,8 +21,47 @@ A Reference Class to encapsulate LINCS methods
 \section{Methods}{
 
 \describe{
+\item{\code{chDir(treated, control)}}{Convenience wrapper to calculate Characteristic Direction Unity Vector based on two datasets.
+\subsection{Parameters}{
+\itemize{
+\item{\code{treated} Expression data for treated samples, as `data.frame`, `matrix`, or `ExpressionSet`}
+\item{\code{control} Expression data for control samples, as `data.frame`, `matrix`, or `ExpressionSet`}}}
+\subsection{Return Value}{Column matrix of characteristic direction scores for each gene.}
+\subsection{Details}{There are a few steps involved in getting data formatted for the `chdirAnalysis` function.  
+                      This function takes care of that for you.}}
+
 \item{\code{close()}}{Close any open HDF5 (gctx) file connections.
 \subsection{Return Value}{None.  Called for side effect of closing connections.}}
+
+\item{\code{clue(endpoint = c("sigs", "cells", "genes", "perts", "plates", "profiles",
+  "rep_drugs", "pcls"), fields = "", where_clause = "", limit = 0,
+  count = FALSE, unpack_sigs = TRUE, cl = NULL)}}{Wrapper for clue.io REST calls
+\subsection{Parameters}{
+\itemize{
+\item{\code{endpoint} The endpoint to query.  Default is 'sigs'.}
+\item{\code{fields} Optional vector of fields to return.}
+\item{\code{where_clause} Optional where_clause clause.  Must be named list (e.g. list(field='value')}
+\item{\code{unpack_sigs} The sigs endpoint returns multiple distil_ids per row.  Should we unpack these to one per row?}
+\item{\code{cl} Optional cluster object to parallelize data retrieval.}
+}}
+\subsection{Return Value}{Data returned by Slinky.api as a data.frame}}
+
+\item{\code{clue.count(endpoint = c("sigs", "cells", "genes", "perts", "plates",
+  "profiles", "rep_drugs", "pcls"), where_clause = "")}}{Wrapper for Slinky.io REST calls to retrieve record counts
+\subsection{Parameters}{
+\itemize{
+\item{\code{endpoint} The endpoint to query, default is 'sigs'.}
+\item{\code{where_clause} Optional where_clause clause.  Must be named list (e.g. list(field='value')}
+}}
+\subsection{Return Value}{Count of records satisfying query}}
+
+\item{\code{clue.instances(where_clause = NULL)}}{Convenience wrapper to query function to retrieve instance ids meeting specified criteria
+\subsection{Parameters}{
+\itemize{
+\item{\code{where_clause} Filter terms, as a list of terms, e.g. list(pert_type='trt_cp', 'is_gold'=TRUE).  Terms will be joined by AND logic.}
+}}
+\subsection{Return Value}{Vector of ids matching criteria.}
+\subsection{Details}{This is a convenience wrapper to the signature API which queries clue.io and unwraps response. }}
 
 \item{\code{colnames(file = NULL, index = NULL)}}{Retrieve column names from LINCS gctx datafile
 \subsection{Parameters}{
@@ -35,14 +74,12 @@ A Reference Class to encapsulate LINCS methods
 row level metadata as well as the expression data itself.  If `index` is provided, it should be a list of extent one providing 
 a vector of column indices for which to retrn ids.  For example, index=list(c(1,2,3,10)).}}
 
-\item{\code{count(endpoint = c("sigs", "cells", "genes", "perts", "plates", "profiles",
-  "rep_drugs", "pcls"), where_clause = "")}}{Wrapper for Slinky.io REST calls to retrieve record counts
+\item{\code{distil.to.plate(x)}}{Extract the plate id from distil_id
 \subsection{Parameters}{
 \itemize{
-\item{\code{endpoint} The endpoint to query, default is 'sigs'.}
-\item{\code{where_clause} Optional where_clause clause.  Must be named list (e.g. list(field='value')}
+\item{\code{x} A vector of distil_ids, a dataframe with distil_id element, or an eset whose pData(eset) contains distil_id.}
 }}
-\subsection{Return Value}{Count of records satisfying query}}
+\subsection{Return Value}{Slinky object}}
 
 \item{\code{download(type = c("expression", "info", "readme"), level = 3, phase = 1,
   prompt = TRUE)}}{Convenience function to retrieve LINCS L1000 data and metadata files.
@@ -64,26 +101,6 @@ a vector of column indices for which to retrn ids.  For example, index=list(c(1,
 \item{\code{gctx} Optional path to gctx file containing data you want to work with.  Can be specified later if desired.}
 }}
 \subsection{Return Value}{Slinky object}}
-
-\item{\code{query(endpoint = c("sigs", "cells", "genes", "perts", "plates", "profiles",
-  "rep_drugs", "pcls"), fields = "", where_clause = "", limit = 0,
-  count = FALSE, cl = NULL)}}{Wrapper for Slinky.io REST calls
-\subsection{Parameters}{
-\itemize{
-\item{\code{endpoint} The endpoint to query.  Default is 'sigs'.}
-\item{\code{fields} Optional vector of fields to return.}
-\item{\code{where_clause} Optional where_clause clause.  Must be named list (e.g. list(field='value')}
-\item{\code{cl} Optional cluster object to parallelize data retrieval.}
-}}
-\subsection{Return Value}{Data returned by Slinky.api as a data.frame}}
-
-\item{\code{query.instances(where_clause = NULL)}}{Convenience wrapper to query function to retrieve instance ids meeting specified criteria
-\subsection{Parameters}{
-\itemize{
-\item{\code{where_clause} Filter terms, as a list of terms, e.g. list(pert_type='trt_cp', 'is_gold'=TRUE).  Terms will be joined by AND logic.}
-}}
-\subsection{Return Value}{Vector of ids matching criteria.}
-\subsection{Details}{This is a convenience wrapper to the signature API which queries clue.io and unwraps response. }}
 
 \item{\code{readGCTX(file = NULL, index = NULL)}}{Read portions of data matrix from LINCS gctx datafile
 \subsection{Parameters}{
@@ -117,15 +134,17 @@ a vector of row indices for which to retrn ids.  For example, index=list(c(1,2,3
 \subsection{Return Value}{Vectors of scores, one per column of data}}
 
 \item{\code{toEset(gctx = NULL, index = NULL, where_clause = NULL, fields = NULL,
-  info_file = NULL)}}{Convert data from gctx file to eset, pulling metadata from various sources
+  info_file = NULL, verbose = FALSE)}}{Convert data from gctx file to eset, pulling metadata from various sources
 \subsection{Parameters}{
 \itemize{
 \item{\code{gctx} Path to gctx file.  May be omitted if already set when Slinky object was instantiated.}
 \item{\code{index} Index of extent 2 giving the row and column indices to pull from the gctx file.}
 \item{\code{where_clause} Query to use to determine which columns to pull from gctx file.}
 \item{\code{fields} Fields to include in the expression set's phenodata.  Default is all available.}
-\item{\code{info_file} Optional path to GSE92742_Broad_LINCS_inst_info.txt.  Default is to look in the library's 
-                         installation folder and current working directory, and then download it if not found.}}}
+\item{\code{info_file} Optional path to GSE92742_Broad_LINCS_inst_info.txt or other identically formatted metadata file.  
+                         that covers the requested instances.  Default is to look in the library's 
+                         installation folder and current working directory, and then download it if not found.}
+\item{\code{verbose} Do you want to know how things are going?  Default is FALSE}}}
 \subsection{Return Value}{Object of type eSet containing expression and pheno data.}
 \subsection{Details}{You must specify either index or where_clause to avoid inadvertently slurping in entire gctx file.}}
 }}

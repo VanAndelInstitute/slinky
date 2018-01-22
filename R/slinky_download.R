@@ -1,3 +1,5 @@
+#' @export
+#' @importFrom curl curl
 Slinky$methods(download = function(type = c("expression", "info", "readme"), level = 3, phase = 1, prompt=TRUE) {
   "Convenience function to retrieve LINCS L1000 data and metadata files.
   \\subsection{Parameters}{
@@ -20,27 +22,27 @@ Slinky$methods(download = function(type = c("expression", "info", "readme"), lev
     stop("Only Phase I data is supported at this time.")
   }
   if (type == "info") {
-    con <- curl("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/GSE92742_Broad_LINCS_inst_info.txt.gz")
+    con <- curl::curl("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/GSE92742_Broad_LINCS_inst_info.txt.gz")
     of <- gsub(".*/", "", summary(con)$description)
     size = 11
   } else if (type == "readme") {
-    con <- curl("https://docs.google.com/document/d/1q2gciWRhVCAAnlvF2iRLuJ7whrGP6QjpsCMq1yWz7dU/export?format=pdf")
+    con <- curl::curl("https://docs.google.com/document/d/1q2gciWRhVCAAnlvF2iRLuJ7whrGP6QjpsCMq1yWz7dU/export?format=pdf")
     of <- "GEO_cmap_lincs_userguide.pdf"
     size = 1
   } else if (level == 2) {
-    con <- curl("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/GSE92742_Broad_LINCS_Level2_GEX_epsilon_n1269922x978.gctx.gz")
+    con <- curl::curl("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/GSE92742_Broad_LINCS_Level2_GEX_epsilon_n1269922x978.gctx.gz")
     of <- gsub(".*/", "", summary(con)$description)
     size = 2000
   } else if (level == 3) {
-    con <- curl("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx.gz")
+    con <- curl::curl("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx.gz")
     of <- gsub(".*/", "", summary(con)$description)
     size = 48800
   } else if (level == 4) {
-    con <- curl("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/GSE92742_Broad_LINCS_Level4_ZSPCINF_mlr12k_n1319138x12328.gctx.gz")
+    con <- curl::curl("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/GSE92742_Broad_LINCS_Level4_ZSPCINF_mlr12k_n1319138x12328.gctx.gz")
     of <- gsub(".*/", "", summary(con)$description)
     size = 49600
   } else if (level == 5) {
-    con <- curl("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/GSE92742_Broad_LINCS_Level5_COMPZ.MODZ_n473647x12328.gctx.gz")
+    con <- curl::curl("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/GSE92742_Broad_LINCS_Level5_COMPZ.MODZ_n473647x12328.gctx.gz")
     of <- gsub(".*/", "", summary(con)$description)
     size = 19900
   } else {
@@ -95,6 +97,8 @@ Slinky$methods(download = function(type = c("expression", "info", "readme"), lev
         cat("Failed to gunzip.  Please gunzip the downloaded file manually...")
     })
   }
-  cat(paste0("\n\nDownload complete.  File saved to ", getwd(), "/", gsub(".gz", "", of), "\n"))
+  fn <- gsub(".gz", "", of)
+  cat(paste0("\n\nDownload complete.  File saved to ", getwd(), "/", fn, "\n"))
+  return(fn)
 })
 

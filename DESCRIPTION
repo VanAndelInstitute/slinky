@@ -10,21 +10,25 @@ License: MIT + file LICENSE
 Depends:
     R (>= 3.1.0),
 Imports:
-    Biobase,
+    Biobase, 
+    curl,
     foreach,
     httr,
     jsonlite,
-    parallel,
     plyr,
-    methods,
     rhdf5
 Collate:
     'slinky.R'
     'slinky_download.R'
+    'slinky_clue.R'
+    'slinky_gctx.R'
     'slinky_scoring.R'
     'slinky_package.R'
     'slinky_eset.R'
+    'slinky_chdir.R'
 Suggests:
+    doParallel,
+    GeoDE,
     testthat,
     knitr,
     rmarkdown

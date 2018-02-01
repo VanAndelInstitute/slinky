@@ -12,20 +12,22 @@ Depends:
 Imports:
     Biobase, 
     curl,
-    foreach,
     httr,
     jsonlite,
-    plyr,
+    foreach,
+    dplyr,
+    doParallel,
     rhdf5
 Collate:
     'slinky.R'
     'slinky_download.R'
-    'slinky_clue.R'
+    'slinky_info.R'
     'slinky_gctx.R'
-    'slinky_scoring.R'
-    'slinky_package.R'
+    'slinky_clue.R'
     'slinky_eset.R'
     'slinky_chdir.R'
+    'slinky_scoring.R'
+    'slinky_package.R'
 Suggests:
     doParallel,
     GeoDE,

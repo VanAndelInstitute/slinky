@@ -10,6 +10,8 @@ Slinky$methods(colnames = function(file=NULL, index=NULL) {
   \\subsection{Details}{The gctx file is an HDF5 formatted file with several sections (groups) containing the column and
   row level metadata as well as the expression data itself.  If `index` is provided, it should be a list of extent one providing 
   a vector of column indices for which to retrn ids.  For example, index=list(c(1,2,3,10)).}"
+  
+  .self$close() # cleanup in case there was a bad exit previously
   if((length(index) & !typeof(index) == "list") || length(index) > 1) {
     stop("Index must be a list of extent 1 provided indices of instanceIds to return")
   }
@@ -36,8 +38,10 @@ Slinky$methods(rownames = function(file=NULL, index=NULL) {
   \\subsection{Details}{The gctx file is an HDF5 formatted file with several sections (groups) containing the column and
   row level metadata as well as the expression data itself.  If `index` is provided, it should be a list of extent one providing 
   a vector of row indices for which to retrn ids.  For example, index=list(c(1,2,3,10)).}"
+  
+  .self$close() # cleanup in case there was a bad exit previously
   if((length(index) & !typeof(index) == "list") || length(index) > 1) {
-    stop("Index must be a list of extent 1 provided indices of instanceIds to return")
+    stop("Index must be a list of extent 1 provided indices of rows to return")
   }
   if(!length(file) && !length(.self$.gctx)) {
     stop("You must specify path to gctx file.")
@@ -62,11 +66,16 @@ Slinky$methods(readGCTX = function(file=NULL, index=NULL) {
   \\subsection{Return Value}{Matrix of expression data with rownames and colnames appropriately set}
   \\subsection{Details}{Failure to close connections will result in warning messages at garbage collection.  
   Calling close prior to removing object will close connections and prevent these messages.}"
+  
+  .self$close() # cleanup in case there was a bad exit previously
   if(!length(file) && !length(.self$.gctx)) {
     stop("You must specify path to gctx file.")
   }
   if(!length(index)) {
     stop("You must provide index argument.  E.g. index=list(1:10, 1:5)")
+  }
+  if((length(index) & !typeof(index) == "list") || length(index) != 2) {
+    stop("Index must be a list of extent 2 provided indices of instanceIds to return, e.g. 'list(1:10, 1:50)'")
   }
   if(!length(file)) file = .self$.gctx
   data <- rhdf5::h5read(file, name = "0/DATA/0/matrix", index=index)
@@ -81,58 +90,3 @@ Slinky$methods(close = function() {
   \\subsection{Return Value}{None.  Called for side effect of closing connections.}"
   rhdf5::H5close()
 })
-
-
-# # How to create a test gctx file containing tiny subset of LINCS data:
-# 
-# library(slinky)
-# library(rhdf5)
-# H5close()
-# tt <- readRDS("inst/extdata/test_inst_info.rds")
-# sl <- Slinky$new(key="ffff", gctx="/media/secondary/LINCS/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx")
-# ix <- which(sl$colnames() %in% tt[,2])
-# ix <- match(tt[,2], sl$colnames())
-# all.equal(as.character(sl$colnames()[ix]), as.character(tt[,2]))
-# 
-# setwd("/media/secondary/LINCS")
-# meta.col.id <- h5read("GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx",
-#                       name = "0/META/COL/id",
-#                       index=list(ix))
-# meta.row.id <- h5read("GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx",
-#                       name = "0/META/ROW/id",
-#                       index=list(1:978))
-# data.0.matrix <- h5read("GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx",
-#                         name = "0/DATA/0/matrix",
-#                         index=list(1:978, ix))
-# all.equal(as.character(meta.col.id), as.character(tt[,2]))
-# 
-# setwd("~/slinky")
-# h5createFile("inst/extdata/demo.gctx")
-# h5createGroup("inst/extdata/demo.gctx","0")
-# h5createGroup("inst/extdata/demo.gctx","0/META")
-# h5createGroup("inst/extdata/demo.gctx","0/META/COL")
-# h5createGroup("inst/extdata/demo.gctx","0/META/ROW")
-# h5createGroup("inst/extdata/demo.gctx","0/DATA")
-# h5createGroup("inst/extdata/demo.gctx","0/DATA/0")
-# 
-# h5createDataset("inst/extdata/demo.gctx", "0/META/COL/id",
-#                 c(50),
-#                 size=40,
-#                 storage.mode = "character")
-# h5write(meta.col.id, file="inst/extdata/demo.gctx", name="0/META/COL/id")
-# 
-# h5createDataset("inst/extdata/demo.gctx", "0/META/ROW/id",
-#                 c(978),
-#                 storage.mode = "integer")
-# h5write(meta.row.id, file="inst/extdata/demo.gctx", name="0/META/ROW/id")
-# 
-# h5createDataset("inst/extdata/demo.gctx", "0/DATA/0/matrix",
-#                 c(978,50),
-#                 storage.mode = "double")
-# h5write(data.0.matrix, file="inst/extdata/demo.gctx", name="0/DATA/0/matrix")
-# H5close()
-# 
-# # and create the corresponding info file
-# ii <- read.delim("inst/extdata/GSE92742_Broad_LINCS_inst_info.txt")
-# ix <- match(meta.col.id, ii$inst_id)
-# write.table(ii[ix,], file="inst/extdata/demo_inst_info.txt", sep="\t", row.names=FALSE, quote=FALSE)

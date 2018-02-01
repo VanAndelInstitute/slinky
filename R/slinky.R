@@ -9,18 +9,21 @@
 Slinky <- setRefClass("Slinky",
                       fields = list(.user_key = "character",
                                     .base = "character",
-                                    .gctx = "ANY"), # allow null
-                     methods = list(
+                                    .gctx = "ANY", # allow null
+                                    .info = "ANY", # allow null
+                                    metadata = "ANY"), # allow null
+                      methods = list(
                                      )
 )
 
 #' @export
-Slinky$methods(initialize = function(key=NULL, gctx=NULL) {
+Slinky$methods(initialize = function(key=NULL, gctx=NULL, info=NULL) {
   "Create a Slinky object
   \\subsection{Parameters}{
   \\itemize{
   \\item{\\code{key} Your clue.io user key.  If not specified, CLUE_API_KEY environment variable must be set.}
   \\item{\\code{gctx} Optional path to gctx file containing data you want to work with.  Can be specified later if desired.}
+  \\item{\\code{info} Optional path to info file containing metadata describing the instances in the gctz file.}
   }}
   \\subsection{Return Value}{Slinky object}"
   
@@ -37,6 +40,12 @@ Slinky$methods(initialize = function(key=NULL, gctx=NULL) {
   } else {
     .self$.gctx = NULL;
   }
+  if(length(info)) {
+    .self$.info = info;
+  } else {
+    .self$.info = "GSE92742_Broad_LINCS_inst_info.txt"
+  }
+  .self$metadata = NULL;
 })
 
 

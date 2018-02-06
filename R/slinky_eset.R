@@ -46,6 +46,9 @@ Slinky$methods(toEset = function(gctx=NULL,
     }
     if(verbose) message("Loading expression data...")
     data <- .self$readGCTX(gctx, index=index)
+    if(ncol(data) != length(index[[2]])) {
+      warning(length(index[[2]]), " instances requested, but only ", ncol(data), " instances present in gctx file." )
+    }
   } else {
     if(length(where_clause)) {
       if(verbose) message("Querying and loading expression data...")
@@ -65,6 +68,9 @@ Slinky$methods(toEset = function(gctx=NULL,
     } else {
       data <- .self$readGCTX(index=list(1:978, ix))
     }
+    if(ncol(data) != length(ids)) {
+      warning(length(ids), " instances requested, but only ", ncol(data), " instances present in gctx file." )
+    }
     rm(coln)
   }
   
@@ -73,6 +79,7 @@ Slinky$methods(toEset = function(gctx=NULL,
     ids <- .self$controls(ids=base::colnames(data),verbose = verbose, cl = cl)
     if(inferred) {
       rows = NULL
+      
     } else {
       rows = 1:978
     }

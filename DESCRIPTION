@@ -33,7 +33,7 @@ Suggests:
     GeoDE,
     testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
     BiocStyle
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1

@@ -1,23 +1,22 @@
 Package: slinky
 Type: Package
-Title: Utilities for working with LINCS data including clue.io API
-Version: 0.1
-Date: 2017-05-23
+Title: Utilities for Working with LINCS Data Including Clue.io API
+Version: 0.99.0
+Date: 2018-02-06
 Author: Eric J. Kort
 Maintainer: Eric J. Kort  <eric.kort@vai.org>
-Description: Wrappers to clue.io REST API as well as helpers to dealing with LINCS gctx files.
+Description: Wrappers to clue.io REST API as well as helpers to dealing with 
+    LINCS gctx files.
 License: MIT + file LICENSE
 Depends:
-    R (>= 3.1.0),
+    R (>= 3.4.0),
 Imports:
     Biobase, 
     curl,
-    httr,
-    jsonlite,
-    foreach,
     dplyr,
-    doParallel,
-    rhdf5
+    foreach,
+    methods,
+    tidyr
 Collate:
     'slinky.R'
     'slinky_download.R'
@@ -27,9 +26,7 @@ Collate:
     'slinky_eset.R'
     'slinky_chdir.R'
     'slinky_scoring.R'
-    'slinky_package.R'
 Suggests:
-    doParallel,
     GeoDE,
     testthat,
     knitr,
@@ -38,4 +35,5 @@ Suggests:
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 LazyData: true
-VignetteBuilder: knitr
+biocViews: DataImport, ThirdPartyClient, GeneExpression, 
+    DifferentialExpression, GO

@@ -195,6 +195,7 @@ veh <- sl$clue.vehicle(amox_gold, verbose=FALSE)
 We could then identify the corresponding samples treated with that vehicle in our data set using any of the approaches outlined above.  For example
 
 ```{r eval=TRUE}
+sl$loadInfo()
 ix <- which(sl$metadata$pert_iname %in% veh$pert_vehicle)
 amox_and_control <- sl$toEset(ids = c(amox_gold, sl$metadata$inst_id[ix]))
 ```

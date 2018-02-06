@@ -160,4 +160,4 @@ Note the `inq` syntax used above to provide an array of possible values to match
 
 # Further reading
 
-See the vignette in this package for further documntation and examples.
+See the vignette in this package for further documentation and examples.

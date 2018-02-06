@@ -24,3 +24,5 @@ slinky.Rcheck
 #temporary data files
 data/**
 slinky_0.1.tar.gz
+GSE92742_Broad_LINCS_inst_info.txt
+temp.R

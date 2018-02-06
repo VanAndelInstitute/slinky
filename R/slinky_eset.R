@@ -14,8 +14,9 @@ Slinky$methods(toEset = function(gctx=NULL,
   \\subsection{Parameters}{
   \\itemize{
   \\item{\\code{gctx} Path to gctx file.  May be omitted if already set when Slinky object was instantiated.}
-  \\item{\\code{index} Index of extent 2 giving the row and column indices to pull from the gctx file.}
-  \\item{\\code{where_clause} Query to use to determine which columns to pull from gctx file.}
+  \\item{\\code{index} Index of extent 2 giving the row and column indices to pull from the gctx file. Exactly 1 of index, ids, or where_clause should be specified.}
+  \\item{\\code{ids} distil_ids to include in the Expression Set.  Exactly 1 of index, ids, or where_clause should be specified.}
+  \\item{\\code{where_clause} Query to use to determine which columns to pull from gctx file. Exactly 1 of index, ids, or where_clause should be specified.}
   \\item{\\code{inferred} Should the inferred (non-landmark) genes be included in the analysis? Default is FALSE. Ignored if index is specified.}
   \\item{\\code{fields} Fields to include in the expression set's phenodata.  Default is all available.}
   \\item{\\code{controls} Should same-plate controls be identified and included?  Default is FALSE.}
@@ -89,7 +90,6 @@ Slinky$methods(toEset = function(gctx=NULL,
   if(!all.equal(base::rownames(info), as.vector(base::colnames(data)))) {
     stop("Rownames of metadata and colnames of expression data did not match.  Aborting.")
   }
-  
   pd <- new("AnnotatedDataFrame", data=info)
   Biobase::ExpressionSet(assayData=data,
                 phenoData=pd)

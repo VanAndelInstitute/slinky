@@ -34,6 +34,8 @@ Suggests:
     testthat,
     knitr,
     rmarkdown
+    BiocStyle
+VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 LazyData: true
 VignetteBuilder: knitr

@@ -1,13 +1,14 @@
 #' @export
 #' @importFrom curl curl
-Slinky$methods(download = function(type = c("expression", "info", "readme"), level = 3, phase = 1, prompt=TRUE) {
+Slinky$methods(download = function(type = c("expression", "info", "readme"), level = 3, phase = 1, prompt=FALSE, verbose=FALSE) {
   "Convenience function to retrieve LINCS L1000 data and metadata files.
   \\subsection{Parameters}{
   \\itemize{
   \\item{\\code{type} Type of file to retrieve: expression, info (instance level), or readme file. }
   \\item{\\code{level} Level of data desired (if type is expression): 2, 3 (default), 4, or 5.}
   \\item{\\code{phase} What phase of data is desired, 1 of 2?  Currently only 1 is supported.}
-  \\item{\\code{prompt} Warn before downloading huge files?  Set to FALSE for non-interactive mode.}
+  \\item{\\code{prompt} Warn before downloading huge files?  Default is FALSE.}
+  \\item{\\code{verbose} Do you want to know how things are going?  Default is FALSE.}
   }}
   \\subsection{Return Value}{None}
   \\subsection{Details}{Note that most of these files are very large and may make many minutes to several hours to download.
@@ -50,21 +51,23 @@ Slinky$methods(download = function(type = c("expression", "info", "readme"), lev
   }
   
   if (type == "expression" && level > 2) {
-    cat("Download of large file (20-50GB) requested which, when expanded, will take up to 100GB of disk space.  
+    if(prompt) {
+      cat("Download of large file (20-50GB) requested which, when expanded, will take up to 100GB of disk space.  
         \nPlease confirm you have enough disk space and press enter, or 'C' to cancel\n")
-    continue <- readline(prompt = "Press [enter] to continue: ")
-    if (continue == "C") {
-      stop("Dowload cancelled at user's request")
+      continue <- readline(prompt = "Press [enter] to continue: ")
+      if (continue == "C") {
+        stop("Dowload cancelled at user's request")
+      }
     }
   }
   
   if(type == "readme") {
-    cat("Preparing pdf...this may take a minute\n\n")
+    if(verbose) message("Preparing pdf...this may take a minute\n\n")
     flush.console()
   }
   open(con, "rb", blocking = TRUE)
   read <- 1
-  cat("Downloading file.  Progress:\n")
+  if(verbose) message("Downloading file.  Progress:\n")
   flush.console()
   pb <- txtProgressBar(min = 0, 
                        max = size, 
@@ -87,18 +90,17 @@ Slinky$methods(download = function(type = c("expression", "info", "readme"), lev
   if (type == "readme") {
     openPDF(normalizePath(of))
   } else {
-    cat("\n\nGunzipping...")
+    if(verbose) message("\n\nGunzipping...")
     tryCatch({
-      # print(paste0("gunzip ", of))
       system2("gunzip", args=c("-f", of), stderr=TRUE, stdout=TRUE)
       of <- gsub(".gz", "", of)
     }, 
       error = function(e) {
-        cat("Failed to gunzip.  Please gunzip the downloaded file manually...")
+        message("Failed to gunzip.  Please gunzip the downloaded file manually...")
     })
   }
   fn <- gsub(".gz", "", of)
-  cat(paste0("\n\nDownload complete.  File saved to ", getwd(), "/", fn, "\n"))
+  if(verbose) message(paste0("\n\nDownload complete.  File saved to ", getwd(), "/", fn, "\n"))
   return(fn)
 })
 

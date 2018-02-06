@@ -142,13 +142,14 @@ a vector of column indices for which to retrn ids.  For example, index=list(c(1,
 \subsection{Return Value}{Slinky object}}
 
 \item{\code{download(type = c("expression", "info", "readme"), level = 3, phase = 1,
-  prompt = TRUE)}}{Convenience function to retrieve LINCS L1000 data and metadata files.
+  prompt = FALSE, verbose = FALSE)}}{Convenience function to retrieve LINCS L1000 data and metadata files.
 \subsection{Parameters}{
 \itemize{
 \item{\code{type} Type of file to retrieve: expression, info (instance level), or readme file. }
 \item{\code{level} Level of data desired (if type is expression): 2, 3 (default), 4, or 5.}
 \item{\code{phase} What phase of data is desired, 1 of 2?  Currently only 1 is supported.}
-\item{\code{prompt} Warn before downloading huge files?  Set to FALSE for non-interactive mode.}
+\item{\code{prompt} Warn before downloading huge files?  Default is FALSE.}
+\item{\code{verbose} Do you want to know how things are going?  Default is FALSE.}
 }}
 \subsection{Return Value}{None}
 \subsection{Details}{Note that most of these files are very large and may make many minutes to several hours to download.
@@ -209,8 +210,9 @@ a vector of row indices for which to retrn ids.  For example, index=list(c(1,2,3
 \subsection{Parameters}{
 \itemize{
 \item{\code{gctx} Path to gctx file.  May be omitted if already set when Slinky object was instantiated.}
-\item{\code{index} Index of extent 2 giving the row and column indices to pull from the gctx file.}
-\item{\code{where_clause} Query to use to determine which columns to pull from gctx file.}
+\item{\code{index} Index of extent 2 giving the row and column indices to pull from the gctx file. Exactly 1 of index, ids, or where_clause should be specified.}
+\item{\code{ids} distil_ids to include in the Expression Set.  Exactly 1 of index, ids, or where_clause should be specified.}
+\item{\code{where_clause} Query to use to determine which columns to pull from gctx file. Exactly 1 of index, ids, or where_clause should be specified.}
 \item{\code{inferred} Should the inferred (non-landmark) genes be included in the analysis? Default is FALSE. Ignored if index is specified.}
 \item{\code{fields} Fields to include in the expression set's phenodata.  Default is all available.}
 \item{\code{controls} Should same-plate controls be identified and included?  Default is FALSE.}

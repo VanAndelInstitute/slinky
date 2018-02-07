@@ -1,7 +1,12 @@
 #' @export
-Slinky$methods(de.by.plate = function(treat, control = "auto",
-    method = "cd", where_clause = list(), gold = TRUE, inferred = FALSE,
-    verbose = FALSE, ...) {
+Slinky$methods(diffexp = function(treat,
+                                control = "auto",
+                                method = "cd",
+                                split_by_plate = TRUE,
+                                where_clause = list(),
+                                gold = TRUE,
+                                inferred = FALSE,
+                                verbose = FALSE, ...) {
     "Calculate differential expression scores, subsetting by plate.
     \\subsection{Parameters}{
     \\itemize{
@@ -12,6 +17,10 @@ Slinky$methods(de.by.plate = function(treat, control = "auto",
             details.}
         \\item{\\code{method} Scoring method to use.  Only \\code{cd} is
             presently supported.}
+        \\item{\\code{split_by_plate} Should the analysis be split by plate?
+            This is one way to control for batch effects, but requires at least
+            two treated sample and two control samples on each plate in the
+            dataset.}
         \\item{\\code{where_clause} If treat is a pert_desc, further query
             terms may be specified here (e.g. \\code{pert_type=\"trt_sh\"}).}
         \\item{\\code{gold} Restrict analysis to gold instances as defined by
@@ -43,7 +52,7 @@ Slinky$methods(de.by.plate = function(treat, control = "auto",
         represented in \\code{control}}"
 
     if (class(treat) == "character") {
-        where_clause$pert_desc = treat
+        where_clause$pert_iname = treat
 
         if (gold) {
             where_clause$is_gold = TRUE
@@ -66,7 +75,7 @@ Slinky$methods(de.by.plate = function(treat, control = "auto",
     if (control == "auto") {
 
         if (verbose) message("\nLocating and loading control samples.")
-        ids <- .self$info.controls(Biobase::pData(treat)$distil_id,
+        ids <- .self$controls(Biobase::pData(treat)$distil_id,
                                     verbose = verbose)$distil_id
         control <- .self$toEset(index = list(1:978,
                                              which(.self$colnames() %in% ids)))
@@ -91,15 +100,19 @@ Slinky$methods(de.by.plate = function(treat, control = "auto",
         stop("de.by.plate expects either the pert_desc of the perturbagen or",
             "an Expression Set for the 'control' dataset")
     }
-
     if (method == "cd") {
         if (verbose) message("Calculating CD scores.")
-        cds <- Biobase::pData(treat) %>% dplyr::group_by(rna_plate) %>%
-            dplyr::do(cd = .self$chDir(treat[, which(treat$rna_plate %in%
-                .$rna_plate)], control[, which(control$rna_plate %in%
-                .$rna_plate)]))
-        # flatten structure to matrix
-        cds <- do.call(cbind, cds$cd) %>% `colnames<-`(cds$rna_plate)
+        if(split_by_plate) {
+            cds <- Biobase::pData(treat) %>%
+                dplyr::group_by(rna_plate) %>%
+                dplyr::do(cd =
+                              .self$chDir(treat[, which(treat$rna_plate %in% .$rna_plate)],
+                                          control[, which(control$rna_plate %in% .$rna_plate)]))
+            # flatten structure to matrix
+            cds <- do.call(cbind, cds$cd) %>% `colnames<-`(cds$rna_plate)
+        } else {
+            cds = .self$chDir(treat, control)
+        }
         return(cds)
     } else {
         stop("Only 'cd' is currently supported as a method for diffExpByPlate")

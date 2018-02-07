@@ -24,12 +24,19 @@ Slinky$methods(
 
         if (class(treated) == "ExpressionSet") {
             treated <- exprs(treated)
+            if(ncol(treated) < 2) {
+                message("NA's returned: treated group had < 2 samples.")
+                return(rep(NA, length(treated)))
+            }
         }
 
         if (class(control) == "ExpressionSet") {
             control <- exprs(control)
+            if(ncol(control) < 2) {
+                message("NA's returned: control group had < 2 samples.")
+                return(rep(NA, length(control)))
+            }
         }
-
         dat <- cbind(treated, control)
         gg <- base::rownames(dat)
         dat <- apply(dat, 2, as.numeric)

@@ -146,8 +146,9 @@ specified criteria.
     dataframe can be used, among other things, to create a control dataset
     for differential expression or other analysis.  See also de.by.plate.}}
 
-\item{\code{de.by.plate(treat, control = "auto", method = "cd", where_clause = list(),
-  gold = TRUE, inferred = FALSE, verbose = FALSE, ...)}}{Calculate differential expression scores, subsetting by plate.
+\item{\code{diffexp(treat, control = "auto", method = "cd", split_by_plate = TRUE,
+  where_clause = list(), gold = TRUE, inferred = FALSE, verbose = FALSE,
+  ...)}}{Calculate differential expression scores, subsetting by plate.
 \subsection{Parameters}{
 \itemize{
     \item{\code{treat} An ExpressionSet containing the treated samples,
@@ -157,6 +158,10 @@ specified criteria.
         details.}
     \item{\code{method} Scoring method to use.  Only \code{cd} is
         presently supported.}
+    \item{\code{split_by_plate} Should the analysis be split by plate?
+        This is one way to control for batch effects, but requires at least
+        two treated sample and two control samples on each plate in the
+        dataset.}
     \item{\code{where_clause} If treat is a pert_desc, further query
         terms may be specified here (e.g. \code{pert_type="trt_sh"}).}
     \item{\code{gold} Restrict analysis to gold instances as defined by

@@ -15,12 +15,26 @@ vignette: >
   %\VignetteIndexEntry{"LINCS analysis with slinky"}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}  
+bibliography: LINCS-analysis.bib
 ---
 
 ```{r, echo=FALSE}
 library(knitr)
 opts_chunk$set(tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
+
+# Background
+
+The The Library of Integrated Network-Based Cellular Signatures (LINCS)
+program has created over 1 million transcriptional profiles 
+[@pmid29195078, @pmid29199020] that 
+detail the effects of thousands of drugs and genetic perturbagens in 
+gene expression space.  This creates a Rosetta stone of sorts, allowing 
+us to translate between disease states, drug treatments, and genetics. 
+This resource holds the promise of unlocking new therapies for diseases, and 
+deeper understanding of how cells respond to drugs and gene perturbation.  
+New tools are needed to simplify working with this large data set which 
+is necessarily spread across several (large) files and information sources.
 
 # Terminology
 
@@ -45,8 +59,10 @@ computer.
 
 ## Data
 
-In this vignette we perform some basic analyses using the L1000 data expression
-data from the LINCS project.  To complete this vignette you will need access to
+The examples in this vignette can be completed with the demonstration `gctx` 
+and `info` files that are installed along with the package.
+
+To move on and conduct your own analysis, you will need access to
 the LINCS Phase I Level 3 data file.  This file may already be available from
 your local bioinformatics core.  If you need or want to download it yourself,
 note that the datafile is quite large (~40GB). A robust multithreaded download
@@ -328,27 +344,87 @@ in a disease.
 The slinky package facilitates this analysis by identifying and loading 
 suitable data subsets necessary to either define or apply gene signatures. The
 package takes this one step further by formatting the data for characteristic 
-direction analysis as implemented in the `GeoDE` package.  This functionality
-is wrapped in the `de.by.plate` (differential expression by plate) function. 
+direction analysis [@pmid24650281] as implemented in the `GeoDE` package.  This functionality
+is wrapped in the `diffexp` function. 
+
 Our goal is to incorporate other popular methods of differential gene 
 expression analysis into this pipeline (analagous to the uniform interface 
 the caret package provides for machine learning).
 
-You can provide the `de.by.plate` function two expression sets (treated and 
-control) to analyze.  The control expression set should cover all the plates 
-represented in the trated dataset.  Alternatively, you can simply provide 
-the treated samples as an expression set and `de.by.plate` will automatically 
-identify and load the corresponding control samples in the same manner as 
-discussed above.
+You can provide the `diffexp` function two expression sets (treated and 
+control) to analyze.  Alternatively, you can simply provide 
+the treated samples as an expression set and `diffexp` will automatically 
+identify and load the corresponding same-plate control samples in the same 
+manner as discussed above.
 
-Alternatively, you can simply provide a "where_clause" to identify the treated 
-samples of interest.  Then `de.by.plate` will load the corresponding data, 
-and identify and load the corresponding same-plate controls.
+Alternatively, you can simply specify a perturbagen of interest as the "treat"
+argument.  (You can also provide additional parameters to the "where_clause" 
+argument to further narrow your query). Then `diffexp` will load the 
+corresponding data, and identify and load the corresponding same-plate 
+controls.
 
-The function returns a data frame that contains one vector of scores per plate.
-You can then summarize these scores as you wish.  One approach is to take the 
-rank product of the scores to identify those genes that are most consistently 
-down and up regulated.
+```{r eval=TRUE}
+vec <- sl$diffexp(treat = "amoxicillin", 
+                 split_by_plate = FALSE, 
+                 verbose = FALSE)
+head(vec)
+```
+
+If `by_plate = FALSE`, the function returns a vector of scores for each gene in
+the dataset representing the magnitude and sign of that gene's component vector
+(i.e. its contribution to the characteristic direction of your dataset). In an 
+(arguably) ideal situation, you would only compare instances to controls from 
+the same plate.  But to perform the characteristic direction analysis (or 
+any other imagineable statistical analysis) requires at least two samples in 
+the treated group and two in the control group.  We do not always have this 
+luxury. So in the case of the amoxicillin, we have to combine our treated and 
+control samples across plates into a single analysis.  
+
+However, even in this scenario, the control samples identified by `diffexp` 
+still come from the same plates as the treated samples (even if there is only 
+one treated or one control on a given plate).
+
+In the next example, we are able to split the analysis into plates because the 
+perturbagen is present in replicates on each plate.
+
+```{r}
+vecs <- sl$diffexp(treat = "LMNA",
+                 where_clause = list("pert_type" = "trt_sh"),
+                 split_by_plate = TRUE, 
+                 verbose = FALSE)
+vecs[1:5,1:5]
+```
+
+Here, `diffexp` returns a matrix of scores, one row per gene and one column per
+plate.  The plates could then be summarized in some fashion. One nice approach 
+is to take the rank product [@pmid15327980] of the scores which identifies 
+those genes that are most consistently up regulated (the smaller the rank 
+product, the more likely the gene is to be differentially expressed.)  This 
+approach can also identify down regulated genes, of course, provided the values
+are sorted in the opposite direction.
+
+```{r}
+# negate the values so 1 = the most up regulated gene
+# (rank sorts in ASCENDING order, which is not what we want)
+ranks <- apply(-vecs, 2, rank)
+
+n <- nrow(ranks)
+rp <- apply(ranks, 1, function(x) { (prod(x/n))})
+
+```
+
+If the user has the `org.Hs.eg.db` package installed, then the gene symbols 
+corresponding to the most upregulated genes in this case could be identified.
+
+```{r, eval=FALSE}
+entrez_ids <- names(sort(rp, decreasing=FALSE))[1:50]
+entrez_ids <- entrez_ids[which(entrez_ids %in% ls(org.Hs.egSYMBOL))]
+as.vector(unlist(mget(entrez_ids, org.Hs.egSYMBOL)))
+```
+
+This list of genes then could be used as a signature for LMNA knockdown (though
+ideally some permutation based significance analysis would be performed first
+to further filter the gene list).
 
 # Future directions
 
@@ -360,4 +436,6 @@ features that seem to be of high value to any other users of the software.
 Users are encouraged to either email the package maintainer or raise issues 
 on the package's github repository with either bug reports or feature 
 requests.
+
+# References
 

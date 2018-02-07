@@ -1,8 +1,7 @@
 # Abstract
 
 The L1000 data set from the NIH LINCS program holds the promise to deconvolute a wide range of biological questions in transcriptional 
-space.  However, using this large and decentralized data set presents its own challenge.  Here we demonstrate how to use the slinky 
-package to simplify filtering and accessing this data in an efficient analysis pipeline.
+space.  However, using this large and decentralized data set presents its own challenge.  The `slinky` package was created to to simplify filtering and accessing this data in an efficient analysis pipeline.
 
 # Installation
 
@@ -20,7 +19,11 @@ Slinky uses the rhdf5 package to access slices of the L1000 data from disk.  As 
 
 ## Data
 
-In this vignette we perform some basic analyses using the L1000 data expression data from the LINCS project.  To complete this vignette you will need access to the LINCS Phase I Level 3 data file.  This file may already be available from your local bioinformatics core.  If you need or want to download it yourself, note that the datafile is quite large (~40GB). A robust multithreaded download client makes this much faster and less prone to failures due to connectivity hiccups.  For example, you might try:
+The examples in this vignette can be completed with the demonstration `gctx` 
+and `info` files that are installed along with the package.
+
+To move on and conduct your own analysis, you will need access to
+the LINCS Phase I Level 3 data file.  This file may already be available from your local bioinformatics core.  If you need or want to download it yourself, note that the datafile is quite large (~40GB). A robust multithreaded download client makes this much faster and less prone to failures due to connectivity hiccups.  For example, you might try:
 
 ```{r, engine = 'bash', eval=FALSE}
 aria2c -x 8 -s 8 https://goo.gl/3TigFI

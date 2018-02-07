@@ -19,7 +19,7 @@ Slinky uses the rhdf5 package to access slices of the L1000 data from disk.  As 
 
 ## Data
 
-The examples in this vignette can be completed with the demonstration `gctx` 
+The examples in the package vignette can be completed with the demonstration `gctx` 
 and `info` files that are installed along with the package.
 
 To move on and conduct your own analysis, you will need access to

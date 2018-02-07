@@ -10,6 +10,7 @@ Slinky$methods(
 #' @importFrom foreach %dopar% %do% foreach
 #' @importFrom dplyr %>% mutate
 #' @importFrom tidyr unnest
+#' @importFrom httr GET
 Slinky$methods(clue = function(endpoint = c("sigs",
                                             "cells",
                                             "genes",

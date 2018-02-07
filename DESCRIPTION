@@ -15,6 +15,7 @@ Imports:
     curl,
     dplyr,
     foreach,
+    httr,
     methods,
     tidyr
 Collate:

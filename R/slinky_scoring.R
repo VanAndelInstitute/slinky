@@ -15,8 +15,8 @@ Slinky$methods(diffexp = function(treat,
         \\item{\\code{conrol} An ExpressionSet containing the control samples,
             or the pert_desc of desired controls. Default is 'auto'. See
             details.}
-        \\item{\\code{method} Scoring method to use.  Only \\code{cd} is
-            presently supported.}
+        \\item{\\code{method} Scoring method to use.  Only \\code{cd} and
+            \\code{ks} are presently supported.}
         \\item{\\code{split_by_plate} Should the analysis be split by plate?
             This is one way to control for batch effects, but requires at least
             two treated sample and two control samples on each plate in the
@@ -35,7 +35,7 @@ Slinky$methods(diffexp = function(treat,
     \\subsection{Details}{This function looks for \\code{rna_plate} in
         \\code{pData(treat)} and \\code{pData(control)} to slice the data
         into subsets, and then performs differential expression analysis on
-        the subsets. The simplest way to go about this.  If a perturbation
+        the subsets. If a perturbation
         identifier is provided instead of an ExpressionSet, the necessary
         ExpressionSet is constructed by calling this package's \\code{toEset}
         function (which requires that you have initialized this class with
@@ -72,50 +72,163 @@ Slinky$methods(diffexp = function(treat,
             "or an Expression Set for the 'treat' dataset")
     }
 
-    if (control == "auto") {
-
-        if (verbose) message("\nLocating and loading control samples.")
-        ids <- .self$controls(Biobase::pData(treat)$distil_id,
-                                    verbose = verbose)$distil_id
-        control <- .self$toEset(index = list(1:978,
+    if (class(control) == "character") {
+        if(control == "auto") {
+            if (verbose) message("\nLocating and loading control samples.")
+            ids <- .self$controls(Biobase::pData(treat)$distil_id,
+                                  verbose = verbose)$distil_id
+            control <- .self$toEset(index = list(1:978,
                                              which(.self$colnames() %in% ids)))
-        if (verbose)
-            message(paste0("\nLoaded ", ncol(control), " control samples."))
+            if (verbose)
+                message(paste0("\nLoaded ",
+                               ncol(control),
+                               " control samples."))
+        } else  {
 
-    } else if (class(control) == "character") {
+            where_clause <- list(pert_desc = control)
+            if (gold) where_clause$is_gold = TRUE
+            fields <- c("rna_plate", "distil_id")
 
-        where_clause <- list(pert_desc = control)
-        if (gold) where_clause$is_gold = TRUE
-        fields <- c("rna_plate", "distil_id")
+            if (verbose) message("Loading data for 'control' group.")
 
-        if (verbose) message("Loading data for 'control' group.")
+            control <- .self$toEset(where_clause = where_clause,
+                                    fields = fields, verbose = verbose)
 
-        control <- .self$toEset(where_clause = where_clause,
-            fields = fields, verbose = verbose)
-
-        if (verbose)
-            message(paste0("Loaded ", ncol(control), " control samples."))
-
+            if (verbose)
+                message(paste0("Loaded ", ncol(control), " control samples."))
+        }
     } else if (class(control) != "ExpressionSet") {
-        stop("de.by.plate expects either the pert_desc of the perturbagen or",
-            "an Expression Set for the 'control' dataset")
+        stop("rzs expects either 'auto', the pert_desc of the perturbagen or",
+             "an Expression Set for the 'control' dataset")
     }
+
     if (method == "cd") {
         if (verbose) message("Calculating CD scores.")
         if(split_by_plate) {
             cds <- Biobase::pData(treat) %>%
                 dplyr::group_by(rna_plate) %>%
                 dplyr::do(cd =
-                              .self$chDir(treat[, which(treat$rna_plate %in% .$rna_plate)],
-                                          control[, which(control$rna_plate %in% .$rna_plate)]))
+                  .self$chDir(treat[, which(treat$rna_plate %in% .$rna_plate)],
+                  control[, which(control$rna_plate %in% .$rna_plate)]))
             # flatten structure to matrix
             cds <- do.call(cbind, cds$cd) %>% `colnames<-`(cds$rna_plate)
         } else {
             cds = .self$chDir(treat, control)
         }
         return(cds)
+    } else if (method == "ks") {
+        if (verbose) message("Calculating KS scores.")
+        zs <- .self$rzs(treat, control)
+        return(.self$ks(zs))
     } else {
-        stop("Only 'cd' is currently supported as a method for diffExpByPlate")
+        stop("Only 'cd' and 'ks' are currently supported by diffexp.")
     }
 })
 
+#' @export
+Slinky$methods(rzs = function(treat,
+                                  control = "auto",
+                                  where_clause = list(),
+                                  gold = TRUE,
+                                  inferred = FALSE,
+                                  verbose = FALSE, ...) {
+    "Convert each sample in \\code{treat} to robust zscore.
+    \\subsection{Parameters}{
+    \\itemize{
+        \\item{\\code{treat} An ExpressionSet containing the treated samples,
+            or the pert_desc of desired perturbagen. See details. }
+        \\item{\\code{control} An ExpressionSet containing the control samples,
+            or the pert_desc of desired controls. Default is 'auto'. See
+            details.}
+        \\item{\\code{where_clause} If treat is a pert_desc, further query
+            terms may be specified here (e.g. \\code{pert_type=\"trt_sh\"}).}
+        \\item{\\code{gold} Restrict analysis to gold instances as defined by
+            LINCS. Ignored if treat and control are ExpressionSets.}
+        \\item{\\code{inferred} Should the inferred (non-landmark) genes be
+            included in the analysis? Default is FALSE.}
+        \\item{\\code{verbos} Do you want to know how things are going?
+            Default is FALSE.}
+        \\item{\\code{...} Additional arguments for \\code{method}.}
+    }}
+    \\subsection{Return Value}{Matrix of zscore of same dimension as
+        \\code{treat} (or the expression matrix resulting from querying
+        for \\code{treat} if a pert_desc is specified).}
+    \\subsection{Details}{This function identifes same-plate controls for
+        each treated sample, then converts each treated sample to robust
+        z-score by subtracting the median control values and dividing by
+        the (scaled) median absolute deviations.}"
+    if (class(treat) == "character") {
+        where_clause$pert_iname = treat
+
+        if (gold) {
+            where_clause$is_gold = TRUE
+        }
+
+        fields <- c("rna_plate", "distil_id")
+        if (verbose)
+            message("Loading data for 'treat' group.")
+        treat <- .self$toEset(where_clause = where_clause,
+                              fields = fields,
+                              verbose = verbose)
+        if (verbose)
+            message(paste0("\nLoaded ", ncol(treat), " treated samples."))
+
+    } else if (class(treat) != "ExpressionSet") {
+        stop("de.by.plate expects either the pert_desc of the perturbagen ",
+             "or an Expression Set for the 'treat' dataset")
+    }
+
+    if (class(control) == "character") {
+        if(control == "auto") {
+            if (verbose) message("\nLocating and loading control samples.")
+            ids <- .self$controls(Biobase::pData(treat)$distil_id,
+                                  verbose = verbose)$distil_id
+            control <- .self$toEset(index = list(1:978,
+                                            which(.self$colnames() %in% ids)))
+            if (verbose)
+                message(paste0("\nLoaded ",
+                               ncol(control),
+                               " control samples."))
+        } else  {
+
+            where_clause <- list(pert_desc = control)
+            if (gold) where_clause$is_gold = TRUE
+            fields <- c("rna_plate", "distil_id")
+
+            if (verbose) message("Loading data for 'control' group.")
+
+            control <- .self$toEset(where_clause = where_clause,
+                                    fields = fields, verbose = verbose)
+
+            if (verbose)
+                message(paste0("Loaded ", ncol(control), " control samples."))
+        }
+    } else if (class(control) != "ExpressionSet") {
+        stop("rzs expects either 'auto', the pert_desc of the perturbagen or",
+             "an Expression Set for the 'control' dataset")
+    }
+    zs <- Biobase::pData(treat) %>%
+        dplyr::group_by(rna_plate) %>%
+        dplyr::do(z =
+            .self$.zs(exprs(treat[, which(treat$rna_plate %in% .$rna_plate)]),
+                exprs(control[, which(control$rna_plate %in% .$rna_plate)])))
+    # flatten structure to matrix
+    do.call(cbind, zs$z) %>% `colnames<-`(base::colnames(treat))
+})
+
+
+Slinky$methods(.zs = function(treat, control) {
+    "Internal function for converting expression values to robust  z-scores"
+
+    meanad <- function(x) {
+        mean(abs(x - mean(x)) * 1.253314)
+    }
+
+    medians <- apply(control, 1, median)
+    mads <- apply(control, 1, mad)
+    meanads <- apply(control, 1, meanad)
+    ix <- which(mads == 0)
+    mads[ix] <- meanads[ix]
+
+    apply(treat, 2, function(x) { (x - medians) / mads})
+})

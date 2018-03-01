@@ -156,8 +156,8 @@ specified criteria.
     \item{\code{conrol} An ExpressionSet containing the control samples,
         or the pert_desc of desired controls. Default is 'auto'. See
         details.}
-    \item{\code{method} Scoring method to use.  Only \code{cd} is
-        presently supported.}
+    \item{\code{method} Scoring method to use.  Only \code{cd} and
+        \code{ks} are presently supported.}
     \item{\code{split_by_plate} Should the analysis be split by plate?
         This is one way to control for batch effects, but requires at least
         two treated sample and two control samples on each plate in the
@@ -176,7 +176,7 @@ specified criteria.
 \subsection{Details}{This function looks for \code{rna_plate} in
     \code{pData(treat)} and \code{pData(control)} to slice the data
     into subsets, and then performs differential expression analysis on
-    the subsets. The simplest way to go about this.  If a perturbation
+    the subsets. If a perturbation
     identifier is provided instead of an ExpressionSet, the necessary
     ExpressionSet is constructed by calling this package's \code{toEset}
     function (which requires that you have initialized this class with
@@ -233,6 +233,26 @@ describing the instances in the gctz file.}
 }}
 \subsection{Return Value}{Slinky object}}
 
+\item{\code{ks(data)}}{Calculate KS based enrichment score
+\subsection{Parameters}{
+\itemize{
+\item{\code{ks} An N x M matrix of gene expression values (typically
+         robust zscores) for N genes and M samples. Rownames should
+         be the gene ids.}
+}}
+\subsection{Return Value}{Vector of KS scores for each gene.}
+\subsection{Details}{The the original CMAP paper by Lamb et al. used
+    a KS random walk based statistic for calculating enrichment.  Here
+    we use the same metric to identify differentially expressed genes.
+    The question arises how to summarize accross replicates.
+    We use a "rank of ranks" approach.  With this
+    method, each sample is ranked, and then the entire matrix is
+    ranked to create a single vector.  The KS statistic is then
+    calculated for each gene based on the position of their replicate
+    values in the vectorized matrix.  In this way, genes that
+    consistently have high ranks within each sample will have a higher
+    KS score than those that are inconsistently ranked.}}
+
 \item{\code{loadInfo(file = NULL, verbose = FALSE, reload = FALSE)}}{Load the info file into memory if not already loaded.
 \subsection{Parameters}{
 \itemize{
@@ -277,6 +297,33 @@ describing the instances in the gctz file.}
     as the expression data itself.  If `index` is provided, it should be a
     list of extent one providing a vector of row indices for which to
     return ids.  For example, index=list(c(1,2,3,10)).}}
+
+\item{\code{rzs(treat, control = "auto", where_clause = list(), gold = TRUE,
+  inferred = FALSE, verbose = FALSE, ...)}}{Convert each sample in \code{treat} to robust zscore.
+\subsection{Parameters}{
+\itemize{
+    \item{\code{treat} An ExpressionSet containing the treated samples,
+        or the pert_desc of desired perturbagen. See details. }
+    \item{\code{control} An ExpressionSet containing the control samples,
+        or the pert_desc of desired controls. Default is 'auto'. See
+        details.}
+    \item{\code{where_clause} If treat is a pert_desc, further query
+        terms may be specified here (e.g. \code{pert_type="trt_sh"}).}
+    \item{\code{gold} Restrict analysis to gold instances as defined by
+        LINCS. Ignored if treat and control are ExpressionSets.}
+    \item{\code{inferred} Should the inferred (non-landmark) genes be
+        included in the analysis? Default is FALSE.}
+    \item{\code{verbos} Do you want to know how things are going?
+        Default is FALSE.}
+    \item{\code{...} Additional arguments for \code{method}.}
+}}
+\subsection{Return Value}{Matrix of zscore of same dimension as
+    \code{treat} (or the expression matrix resulting from querying
+    for \code{treat} if a pert_desc is specified).}
+\subsection{Details}{This function identifes same-plate controls for
+    each treated sample, then converts each treated sample to robust
+    z-score by subtracting the median control values and dividing by
+    the (scaled) median absolute deviations.}}
 
 \item{\code{toEset(gctx = NULL, index = NULL, ids = NULL, where_clause = NULL,
   inferred = FALSE, fields = NULL, controls = FALSE, info_file = NULL,

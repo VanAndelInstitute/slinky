@@ -1,6 +1,7 @@
 ---
 title: "LINCS analysis with slinky"
 author: "Eric J. Kort"
+email: "eric.kort@vai.org"
 date: "`r Sys.Date()`"
 abstract: >
   The L1000 data set from the NIH LINCS program holds the promise to
@@ -60,7 +61,10 @@ computer.
 ## Data
 
 The examples in this vignette can be completed with the demonstration `gctx` 
-and `info` files that are installed along with the package.
+and `info` files that are installed along with the package. **Note:** the 
+expression data in the demo gctx file has been truncated from double precsion
+floating point to integer to keep the package size under 4MB as required by 
+the Bioconductor project.
 
 To move on and conduct your own analysis, you will need access to
 the LINCS Phase I Level 3 data file.  This file may already be available from
@@ -120,8 +124,10 @@ sl <- Slinky$new(key, gctx)
 ```
 
 For the purposes of this vignette, we will use a small subset of the L1000 data
-distributed with this package, and the demo API key from clue.io.  Please do
-not use the demo key for actual analysis.
+distributed with this package, and the demo API key from clue.io.  Please do 
+not use the demo key for actual analysis. **Note:** the data in this 
+demonstration dataset has been rounded to integer to keep the package size 
+under 4MB as required by the BioConductor project. 
 
 ```{r, echo=TRUE, message=F, warning=F, eval=TRUE}
 library(slinky)
@@ -143,10 +149,9 @@ interested in and specify these directly.  For example, you might do this by
 filtering the info file that accompanies the L1000 data from GEO.  This
 approach does not even require an API key since it does not call the API.
 
-(It may be usefuly to note that the "landmark" genes are the first 978 rows of
-the dataset.  For our demonstrations here we will stick to that subset of
-genes.  The remaining rows contain the inferred expression for the rest of the
-transcriptome.)
+(It may be useful to note that the "landmark" genes are the first 978 rows of
+the dataset. The remaining rows contain the inferred expression for the rest of
+the transcriptome.)
 
 ## From the info file
 
@@ -157,7 +162,7 @@ located) and then load it into the `metadata` slot of your Slinky object.
 sl$loadInfo()
 col.ix <- which(sl$metadata$pert_iname == "amoxicillin" & 
                 sl$metadata$cell_id == "MCF7")
-data <- sl$readGCTX(index = list(1:978, col.ix))
+data <- sl$readGCTX(index = list(NULL, col.ix))
 ```
 
 Note that the `index` argument to the `readGCTX` expects a list (of row indices
@@ -203,7 +208,7 @@ You could then load these instances by "brute force" as we did above.
 
 ```{r, echo=TRUE, message=F, warning=F, eval=TRUE}
 ix <- which(sl$colnames() %in% amox_gold)
-amox_gold_data <- sl$readGCTX(index = list(1:978, ix))
+amox_gold_data <- sl$readGCTX(index = list(NULL, ix))
 ```
 
 But it is usually more useful to keep this data annotated with its
@@ -213,7 +218,7 @@ done with the `toEset` method.
 
 ```{r, echo=TRUE, message=F, warning=F, eval=TRUE}
 
-amox_gold_eset <- sl$toEset(index = list( 1:978, ix))
+amox_gold_eset <- sl$toEset(index = list( NULL, ix))
 
 ```
 
@@ -256,7 +261,6 @@ vocabularies, but we exploit the "repositioning" data available at the
 
 ```{r, echo=TRUE, message=T, warning=F, eval=TRUE}
 
-
 fda <- sl$clue("rep_drugs", 
             where_clause=list("status_source"=list(like = "FDA Orange"),
                 "final_status"="Launched",
@@ -264,19 +268,23 @@ fda <- sl$clue("rep_drugs",
                 "in_cmap"=TRUE),
             verbose=FALSE)
 
-fda_pert <- sl$clue.instances(
+fda_pert <- sl$clue.instances(poscon = "omit",
                 where_clause=list("pert_type"="trt_cp", 
                                     "is_gold"=TRUE,
                                     "pert_iname"=list("inq"=fda$pert_iname)),
                 verbose=FALSE)
 
-fda_gold_eset <- sl$toEset(ids = fda_pert)
 
 ```
 
-Note also that because we are using the demonstration gctx file distributed
-with this package, we only got a tiny subset of the `fda_pert` instances in our
-eset (70 of 32,891). Reading all 32891 instances from the full gctx file from
+We do not have access to most of these instances in the demo GCTX file, but 
+with the full GCTX file we could then load this data as follows:
+
+```{r, eval=FALSE}
+fda_gold_eset <- sl$toEset(ids = fda_pert, controls = TRUE)
+```
+
+Reading all 32891 instances from the full gctx file from
 GEO takes about 5 minutes in our environment (in part because these instances
 are scattered all accross the file).  If you plan on reusing larger slices of
 the data like this, it would be a good idea to save them as `.rds` files for
@@ -307,7 +315,7 @@ veh <- sl$clue.vehicle(amox_gold, verbose=FALSE)
 We could then identify the corresponding samples treated with that vehicle in
 our data set using any of the approaches outlined above.  For example
 
-```{r eval=TRUE}
+```{r eval=FALSE}
 sl$loadInfo()
 ix <- which(sl$metadata$pert_iname %in% veh$pert_vehicle)
 amox_and_control <- sl$toEset(ids = c(amox_gold, sl$metadata$inst_id[ix]))
@@ -344,8 +352,8 @@ in a disease.
 The slinky package facilitates this analysis by identifying and loading 
 suitable data subsets necessary to either define or apply gene signatures. The
 package takes this one step further by formatting the data for characteristic 
-direction analysis [@pmid24650281] as implemented in the `GeoDE` package.  This functionality
-is wrapped in the `diffexp` function. 
+direction analysis [@pmid24650281] as implemented in the `GeoDE` package.  
+This functionality is wrapped in the `diffexp` function. 
 
 Our goal is to incorporate other popular methods of differential gene 
 expression analysis into this pipeline (analagous to the uniform interface 
@@ -364,11 +372,15 @@ corresponding data, and identify and load the corresponding same-plate
 controls.
 
 ```{r eval=TRUE}
-vec <- sl$diffexp(treat = "amoxicillin", 
+cd_vector <- sl$diffexp(treat = "amoxicillin", 
                  split_by_plate = FALSE, 
                  verbose = FALSE)
-head(vec)
+head(cd_vector)
 ```
+
+Note that not all the matching samples were found in our small demonstration 
+gctx file.  The function ran using the available data, but presents a message 
+that some data was missing.
 
 If `by_plate = FALSE`, the function returns a vector of scores for each gene in
 the dataset representing the magnitude and sign of that gene's component vector
@@ -388,11 +400,12 @@ In the next example, we are able to split the analysis into plates because the
 perturbagen is present in replicates on each plate.
 
 ```{r}
-vecs <- sl$diffexp(treat = "LMNA",
-                 where_clause = list("pert_type" = "trt_sh"),
+cd_vecs <- sl$diffexp(treat = "E2F3",
+                 where_clause = list("pert_type" = "trt_sh",
+                                     "cell_id" = "MCF7"),
                  split_by_plate = TRUE, 
                  verbose = FALSE)
-vecs[1:5,1:5]
+cd_vecs[1:5,1:5]
 ```
 
 Here, `diffexp` returns a matrix of scores, one row per gene and one column per
@@ -406,7 +419,7 @@ are sorted in the opposite direction.
 ```{r}
 # negate the values so 1 = the most up regulated gene
 # (rank sorts in ASCENDING order, which is not what we want)
-ranks <- apply(-vecs, 2, rank)
+ranks <- apply(-cd_vecs, 2, rank)
 
 n <- nrow(ranks)
 rp <- apply(ranks, 1, function(x) { (prod(x/n))})
@@ -417,14 +430,42 @@ If the user has the `org.Hs.eg.db` package installed, then the gene symbols
 corresponding to the most upregulated genes in this case could be identified.
 
 ```{r, eval=FALSE}
+library(org.Hs.eg.db)
 entrez_ids <- names(sort(rp, decreasing=FALSE))[1:50]
 entrez_ids <- entrez_ids[which(entrez_ids %in% ls(org.Hs.egSYMBOL))]
 as.vector(unlist(mget(entrez_ids, org.Hs.egSYMBOL)))
 ```
 
-This list of genes then could be used as a signature for LMNA knockdown (though
+This list of genes then could be used as a signature for E2F3 knockdown (though
 ideally some permutation based significance analysis would be performed first
 to further filter the gene list).
+
+# Visualization
+
+Having ready access to both the expression data and metadata facilitates 
+visualization of the data, including some basic quality control measures.
+For example, we could explore to what extent batch (plate) effects are driving 
+differences between samples. 
+
+```{r, eval=TRUE}
+library(ggplot2)
+library(Rtsne)
+eset <- sl$toEset(index = list(NULL, 1:131))
+set.seed(100)
+ts <- Rtsne(t(Biobase::exprs(eset)))
+tsne_plot <- data.frame(x = ts$Y[,1], 
+                        y = ts$Y[,2], 
+                        treatment = eset$pert_iname,
+                        plate = eset$rna_plate)
+ggplot(tsne_plot) + 
+    geom_point(aes(x=x, y=y, color=plate, shape=treatment)) + 
+    guides(shape=guide_legend(ncol=2))
+```
+
+Ideally, the points would cluster by treatment and not by plate.  Alas, as 
+can be seen in the resulting figure reproduced below, that is not the case. 
+This underscores the importance of constructing your analysis of this data set
+in a way that controls for batch effects.
 
 # Future directions
 

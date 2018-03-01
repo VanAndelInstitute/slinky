@@ -16,7 +16,7 @@ Slinky$methods(loadInfo = function(file = NULL, verbose = FALSE,
     \\subsection{Details}{After complete, metadata from info file will be
         in .self$metadata.}"
 
-    if (length(.self$metadata) && !reload) return
+    if (length(.self$metadata) && !reload) return()
 
     if (!length(file)) {
         file = .self$.locateInfo(verbose = verbose)

@@ -1,12 +1,14 @@
 Package: slinky
 Type: Package
-Title: Utilities for Working with LINCS Data Including Clue.io API
+Title: Putting the fun in LINCS L1000 data analysis.
 Version: 0.99.0
-Date: 2018-02-06
+Date: 2018-03-01
 Author: Eric J. Kort
 Maintainer: Eric J. Kort  <eric.kort@vai.org>
-Description: Wrappers to clue.io REST API as well as helpers to dealing with 
-    LINCS gctx files.
+Description: Wrappers to clue.io REST API as well as helpers for dealing with 
+    LINCS gctx files, extracting data sets of interest, converting to
+    Expression Sets, and some facilities for performing streamlined 
+    differential expression analysis of these data sets.
 License: MIT + file LICENSE
 Depends:
     R (>= 3.4.0),
@@ -26,15 +28,18 @@ Collate:
     'slinky_clue.R'
     'slinky_eset.R'
     'slinky_chdir.R'
+    'slinky_ks.R'
     'slinky_scoring.R'
 Suggests:
     GeoDE,
     testthat,
     knitr,
     rmarkdown,
+    ggplot2,
+    Rtsne,
     BiocStyle
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 LazyData: true
 biocViews: DataImport, ThirdPartyClient, GeneExpression, 
-    DifferentialExpression, GO
+    DifferentialExpression, GeneSetEnrichment, PatternLogic

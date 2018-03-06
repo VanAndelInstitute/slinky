@@ -77,7 +77,7 @@ Slinky$methods(diffexp = function(treat,
             if (verbose) message("\nLocating and loading control samples.")
             ids <- .self$controls(Biobase::pData(treat)$distil_id,
                                   verbose = verbose)$distil_id
-            control <- .self$toEset(index = list(1:978,
+            control <- .self$toEset(index = list(seq_len(978),
                                              which(.self$colnames() %in% ids)))
             if (verbose)
                 message(paste0("\nLoaded ",
@@ -183,7 +183,7 @@ Slinky$methods(rzs = function(treat,
             if (verbose) message("\nLocating and loading control samples.")
             ids <- .self$controls(Biobase::pData(treat)$distil_id,
                                   verbose = verbose)$distil_id
-            control <- .self$toEset(index = list(1:978,
+            control <- .self$toEset(index = list(seq_len(978),
                                             which(.self$colnames() %in% ids)))
             if (verbose)
                 message(paste0("\nLoaded ",

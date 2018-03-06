@@ -42,7 +42,7 @@ Slinky$methods(
         dat <- apply(dat, 2, as.numeric)
         dat <- as.data.frame(dat)
         cl <- rep("1", base::ncol(dat))
-        cl[1:base::ncol(treated)] <- "2"
+        cl[seq_len(base::ncol(treated))] <- "2"
 
         dat <- cbind(gg, dat, stringsAsFactors = FALSE)
         chdirSig(dat, factor(cl))$chdir[[1]]
@@ -73,8 +73,8 @@ chdirSig <- function(data,
         cumsum <- pca1$sdev ^ 2 / sum(pca1$sdev ^ 2)
         keepPC <- length(cumsum[cumsum > 0.001])
 
-        V <- pca1$rotation[, 1:keepPC]
-        R <- pca1$x[, 1:keepPC]
+        V <- pca1$rotation[, seq_len(keepPC)]
+        R <- pca1$x[, seq_len(keepPC)]
 
         Dd <- (t(R[sampleclass == 1,]) %*%
                 R[sampleclass == 1,] + t(R[sampleclass == 2,]) %*%
@@ -95,8 +95,8 @@ chdirSig <- function(data,
         b <- lapply(b, function(x)
             x / sqrt(sum(x ^ 2)))
 
-        b2dscale <- colMeans(R[sampleclass == 2, 1:2]) -
-            colMeans(R[sampleclass == 1, 1:2])
+        b2dscale <- colMeans(R[sampleclass == 2, seq(1,2)]) -
+            colMeans(R[sampleclass == 1, seq(1,2)])
 
         b2dscale <- sqrt(sum(b2dscale ^ 2))
 
@@ -106,6 +106,6 @@ chdirSig <- function(data,
                 b2dscale * as.numeric(as.vector(x) %*% as.vector(V[, 2]))
             ))
 
-        list(chdir = b, pca2d = R[, 1:2], chdir_pca2d = projchdir2d)
+        list(chdir = b, pca2d = R[, seq(1,2)], chdir_pca2d = projchdir2d)
 
     }

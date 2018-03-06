@@ -88,7 +88,7 @@ Slinky$methods(toEset = function(gctx = NULL,
         if (inferred) {
             data <- .self$readGCTX(index = list(NULL, ix))
         } else {
-            data <- .self$readGCTX(index = list(1:978, ix))
+            data <- .self$readGCTX(index = list(seq_len(978), ix))
         }
         if (ncol(data) != length(ids)) {
             message(length(ids), " instances requested, but only ",
@@ -105,7 +105,7 @@ Slinky$methods(toEset = function(gctx = NULL,
             rows = NULL
 
         } else {
-            rows = 1:978
+            rows = seq_len(978)
         }
         cols = which(.self$colnames(gctx) %in% ids$distil_id)
         ctrl <- .self$readGCTX(gctx, index = list(rows, cols))

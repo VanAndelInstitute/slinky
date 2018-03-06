@@ -149,7 +149,7 @@ Slinky$methods(controls = function(ids, verbose = FALSE, cl = NULL) {
         foreach::registerDoSEQ()
     }
 
-    ctrls <- foreach(i = 1:nrow(cond), .combine = dplyr::bind_rows,
+    ctrls <- foreach(i = seq_len(nrow(cond)), .combine = dplyr::bind_rows,
         .export = c("sl")) %dopar% {
         if (cond[i, ]$pert_type == "trt_sh" ||
             cond[i, ]$pert_type == "trt_oe") {

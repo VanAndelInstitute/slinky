@@ -28,7 +28,7 @@ Slinky$methods(colnames = function(file = NULL, index = NULL) {
 
     if (!length(index)) {
         info <- rhdf5::h5dump(file, load = FALSE)
-        index <- list(1:info$`0`$META$COL$id$dim)
+        index <- list(seq_len(info$`0`$META$COL$id$dim))
     }
 
     rhdf5::h5read(file, name = "0/META/COL/id", index = index)
@@ -64,7 +64,7 @@ Slinky$methods(rownames = function(file = NULL, index = NULL) {
 
     if (!length(index)) {
         info <- rhdf5::h5dump(file, load = FALSE)
-        index <- list(1:info$`0`$META$ROW$id$dim)
+        index <- list(seq_len(1:info$`0`$META$ROW$id$dim))
     }
     rhdf5::h5read(file, name = "0/META/ROW/id", index = index)
 })

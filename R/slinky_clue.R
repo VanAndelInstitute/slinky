@@ -113,7 +113,7 @@ Slinky$methods(clue = function(endpoint = c("sigs",
     }
 
     dat <- foreach::foreach(
-        i = 1:ceiling(count / 1000),
+        i = seq_len(ceiling(count / 1000)),
         .combine = dplyr::bind_rows,
         .export = c(".self"),
         .packages = c("httr", "jsonlite")) %dopar% {
@@ -130,7 +130,7 @@ Slinky$methods(clue = function(endpoint = c("sigs",
 
             if (length(ids)) {
                 where_clause = list(distil_id =
-                                    list(inq = c(ids[ii:(ii + lim_filter)])))
+                                    list(inq = c(ids[seq(ii, ii + lim_filter)])))
                 skip <- 0
             } else {
                 skip <- ii
@@ -242,9 +242,9 @@ Slinky$methods(clue.instances = function(where_clause = NULL,
         unpack_sigs = TRUE,
         verbose = verbose
     )
-    ids <- as.character(unlist(sapply(ids[, 1], function(x) {
+    ids <- as.character(unlist(vapply(ids[, 1], function(x) {
         strsplit(x, "\\|")
-    })))
+    }, list("a"))))
 
     if (poscon == "omit") {
         pc <- readRDS(system.file("extdata", "trt_poscon.rds",

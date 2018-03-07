@@ -1,4 +1,4 @@
-#' @importFrom Biobase exprs
+#' @importFrom SummarizedExperiment assays
 #' @export
 Slinky$methods(
     chDir = function(treated, control) {
@@ -7,9 +7,9 @@ Slinky$methods(
         \\subsection{Parameters}{
         \\itemize{
         \\item{\\code{treated} Expression data for treated samples, as
-            `data.frame`, `matrix`, or `ExpressionSet`}
+            `data.frame`, `matrix`, or `SummarizedExperiment`}
         \\item{\\code{control} Expression data for control samples, as
-            `data.frame`, `matrix`, or `ExpressionSet`}
+            `data.frame`, `matrix`, or `SummarizedExperiment`}
         \\item{\\code{plot} Do you want the projection and Top genes plots
             displayed? Default is FALSE.}
         }}
@@ -22,17 +22,17 @@ Slinky$methods(
             circumvent plotting (which may not be desired for the high
             throughput applications targeted by this package).}"
 
-        if (class(treated) == "ExpressionSet") {
-            treated <- exprs(treated)
-            if(ncol(treated) < 2) {
+        if (class(treated) == "SummarizedExperiment") {
+            treated <- SummarizedExperiment::assays(treated)[[1]]
+            if (ncol(treated) < 2) {
                 message("NA's returned: treated group had < 2 samples.")
                 return(rep(NA, length(treated)))
             }
         }
 
-        if (class(control) == "ExpressionSet") {
-            control <- exprs(control)
-            if(ncol(control) < 2) {
+        if (class(control) == "SummarizedExperiment") {
+            control <- SummarizedExperiment::assays(control)[[1]]
+            if (ncol(control) < 2) {
                 message("NA's returned: control group had < 2 samples.")
                 return(rep(NA, length(control)))
             }

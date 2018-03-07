@@ -20,7 +20,7 @@
 #'                  'pert_iname'='amoxicillin',
 #'                  'cell_id' = 'MCF7',
 #'                  'is_gold'=TRUE), poscon = 'omit')
-#' amox_gold_eset <- sl$toEset(ids = amox_gold)
+#' amox_gold_sumexp <- sl$toSummarizedExperiment(ids = amox_gold)
 #'
 #' @exportClass Slinky
 #' @export Slinky
@@ -86,19 +86,19 @@ Slinky$methods(
         \\subsection{Parameters}{
         \\itemize{
             \\item{\\code{x} A vector of distil_ids, a dataframe with
-                distil_id element, or an eset whose pData(eset) contains
-                distil_id.}
+                distil_id element, or an SummarizedExperiment whose colData
+                contains distil_id.}
         }}
         \\subsection{Return Value}{Slinky object}"
 
-        if (class(x) == "eset") {
-            if (!length(pData(x)$distil_id)) {
+        if (class(x) == "SummarizedExperiment") {
+            if (!length(x$distil_id)) {
                 stop(
-                    "ExpressionSet passed to distil.to.plate function, ",
-                    "pheno data did not contain distil_id element."
+                    "SummarizedExperiment passed to distil.to.plate function, ",
+                    "colData did not contain distil_id element."
                 )
             }
-            plates <- gsub("(_X\\d{1,1})_.*", "\\1", pData(x)$distil_id)
+            plates <- gsub("(_X\\d{1,1})_.*", "\\1", x$distil_id)
 
         } else if (class(x) == "data.frame") {
             if (length(x$distil_id)) {

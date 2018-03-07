@@ -212,13 +212,13 @@ amox_gold_data <- sl$readGCTX(index = list(NULL, ix))
 ```
 
 But it is usually more useful to keep this data annotated with its
-corresponding metadata in the form of an `ExpressionSet`.  This can be easily
-done with the `toEset` method.
+corresponding metadata in the form of an `SummarizedExperiment`.  This can be 
+easily done with the `toSummarizedExperiment` method.
 
 
 ```{r, echo=TRUE, message=F, warning=F, eval=TRUE}
 
-amox_gold_eset <- sl$toEset(index = list( NULL, ix))
+amox_gold_eset <- sl$toSummarizedExperiment(index = list( NULL, ix))
 
 ```
 
@@ -226,29 +226,33 @@ Or you can specify the ids directly.
 
 ```{r, echo=TRUE, message=F, warning=T, eval=TRUE}
 
-amox_gold_eset <- sl$toEset(ids = amox_gold)
+amox_gold_eset <- sl$toSummarizedExperiment(ids = amox_gold)
 
 ```
 
 In fact, you could have skipped the trouble of looking up the ids in the first
-place and simply passed the `where_clause` to `toEset` directly.
+place and simply passed the `where_clause` to `toSummarizedExperiment` 
+directly.
 
 ```{r, echo=TRUE, message=F, warning=T, eval=TRUE}
 
-amox_gold_eset <- sl$toEset(where_clause=list("pert_type"="trt_cp",
-                                                "pert_iname"="amoxicillin",
-                                                "cell_id" = "MCF7",
-                                                "is_gold"=TRUE))
+amox_gold_eset <- sl$toSummarizedExperiment(
+                      where_clause = list("pert_type" = "trt_cp",
+                        "pert_iname" = "amoxicillin",
+                        "cell_id" = "MCF7",
+                        "is_gold" = TRUE))
 
 ```
 
-Note that by default, toEset only loads the L1000 genes, so there is no need to
-specify the row index.  If you desire all the genes, simply specify
-`inferred=TRUE` when calling `toEset`.  If you want some other subset of genes,
-you will need to use the `index` method shown previously, and not the ids
-method. This underscores the fact that `toEset` expects exactly one of the
-`ids`, `index`, or `where_clause` arguments.  Specifying more than one of those
-arguments, or none of them, will throw an error.
+Note that by default, `toSummarizedExperiment` only loads the L1000 genes, 
+so there is no need to specify the row index.  If you desire all the genes, 
+simply specify
+`inferred=TRUE` when calling `toSummarizedExperiment`.  If you want some other 
+subset of genes, you will need to use the `index` method shown previously, and 
+not the ids method. This underscores the fact that `toSummarizedExperiment` 
+expects exactly one of the `ids`, `index`, or `where_clause` arguments.  
+Specifying more than one of those arguments, or none of them, will throw an 
+error.
 
 
 Here is a more complex example.  Let us identify those instances treated with
@@ -281,7 +285,7 @@ We do not have access to most of these instances in the demo GCTX file, but
 with the full GCTX file we could then load this data as follows:
 
 ```{r, eval=FALSE}
-fda_gold_eset <- sl$toEset(ids = fda_pert, controls = TRUE)
+fda_gold_eset <- sl$toSummarizedExperiment(ids = fda_pert, controls = TRUE)
 ```
 
 Reading all 32891 instances from the full gctx file from
@@ -318,7 +322,8 @@ our data set using any of the approaches outlined above.  For example
 ```{r eval=FALSE}
 sl$loadInfo()
 ix <- which(sl$metadata$pert_iname %in% veh$pert_vehicle)
-amox_and_control <- sl$toEset(ids = c(amox_gold, sl$metadata$inst_id[ix]))
+amox_and_control <- sl$toSummarizedExperiment(
+                          ids = c(amox_gold, sl$metadata$inst_id[ix]))
 ```
 
 However, there are 54,707 DMSO treated instances in LINCS.  You may not want
@@ -330,15 +335,16 @@ mixture of those types.
 
 ```{r eval=TRUE}
 controls <-  sl$controls(ids = amox_gold)
-amox_and_control <- sl$toEset(ids = c(amox_gold, controls$distil_id))
+amox_and_control <- sl$toSummarizedExperiment(ids = c(amox_gold, controls$distil_id))
 ```
 
 In fact, you can skip the step of identifying the same-plate controls
-altogether and simply specify `controls=TRUE` when calling `toEset`:
+altogether and simply specify `controls=TRUE` when calling 
+`toSummarizedExperiment`:
 
 
 ```{r eval=TRUE}
-amox_and_control <- sl$toEset(ids = amox_gold, controls=TRUE)
+amox_and_control <- sl$toSummarizedExperiment(ids = amox_gold, controls=TRUE)
 ```
 
 # Gene signatures
@@ -447,45 +453,27 @@ visualization of the data, including some basic quality control measures.
 For example, we could explore to what extent batch (plate) effects are driving 
 differences between samples. 
 
-```{r, eval=TRUE}
+```{r, eval=FALSE}
 library(ggplot2)
 library(Rtsne)
-library(slinky)
 
-wd <- "\\\\nasgw.hpc.vai.org\\projects_secondary\\jovinge\\LINCS\\"
-sl <- Slinky$new(readLines(paste0(wd, ".api"))[1],
-                 paste0(wd, "GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"))
-sl$loadInfo("GSE92742_Broad_LINCS_inst_info.txt.gz")
-
-ix <- which(sl$metadata$pert_iname %in% c("sirolimus",   
-                                          "geldanamycin",
-                                          "wortmannin",
-                                          "trichostatin-a",
-                                          "vorinostat") & 
-            sl$metadata$cell_id == "VCAP" &
-            sl$metadata$pert_time == 24)
-ix <- which(sl$colnames() %in% sl$metadata$inst_id[ix])
-eset <- sl$toEset(index = list(seq_len(978), ix))
-
-
-
+eset <- sl$toSummarizedExperiment(index = list(seq_len(978), seq_len(131)))
 
 set.seed(100)
-ts <- Rtsne(t(Biobase::exprs(eset)), perplexity = 50)
+ts <- Rtsne(t(SummarizedExperiment::assays(eset)[[1]]), perplexity = 10)
 tsne_plot <- data.frame(x = ts$Y[,1], 
                         y = ts$Y[,2], 
                         treatment = eset$pert_iname,
                         plate = eset$rna_plate)
+
 ggplot(tsne_plot) + 
-    geom_point(aes(x=x, y=y, color=treatment)) + 
-    guides(color = FALSE) +
-    labs(x="TSNE X", y="TSNE Y") + 
+    geom_point(aes(x = x, y = y, color = plate)) + 
+    labs(x = "TSNE X", y = "TSNE Y") + 
     theme(axis.title = element_text(face = "bold", color = "gray"))
 
 ggplot(tsne_plot) + 
-    geom_point(aes(x=x, y=y, color=plate)) + 
-    guides(color = FALSE) +
-    labs(x="TSNE X", y="TSNE Y") + 
+    geom_point(aes(x = x, y = y, color = treatment)) + 
+    labs(x = "TSNE X", y = "TSNE Y") + 
     theme(axis.title = element_text(face = "bold", color = "gray"))
 
 ```

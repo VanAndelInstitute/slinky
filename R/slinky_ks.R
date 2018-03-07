@@ -1,4 +1,3 @@
-#' @importFrom Biobase exprs
 #' @export
 Slinky$methods(
     ks = function(data) {

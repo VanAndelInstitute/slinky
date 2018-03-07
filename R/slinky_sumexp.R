@@ -1,6 +1,6 @@
-#' @importFrom Biobase AnnotatedDataFrame ExpressionSet
+#' @importFrom SummarizedExperiment SummarizedExperiment
 #' @export
-Slinky$methods(toEset = function(gctx = NULL,
+Slinky$methods(toSummarizedExperiment = function(gctx = NULL,
                                 index = NULL,
                                 ids = NULL,
                                 where_clause = NULL,
@@ -10,7 +10,8 @@ Slinky$methods(toEset = function(gctx = NULL,
                                 info_file = NULL,
                                 cl = NULL,
                                 verbose = FALSE) {
-    "Convert data from gctx file to eset, pulling metadata from various sources
+    "Convert data from gctx file to SummarizedExperiment, pulling metadata 
+    from various sources
     \\subsection{Parameters}{
     \\itemize{
         \\item{\\code{gctx} Path to gctx file.  May be omitted if already set
@@ -43,8 +44,8 @@ Slinky$methods(toEset = function(gctx = NULL,
             where_clause to avoid inadvertently slurping in entire gctx file.}"
 
     if (sum(!length(index), !length(ids), !length(where_clause)) != 2) {
-        stop("toEset function requires exactly one of index, ids, ",
-            "or where_clause.")
+        stop("toSummarizedExperiment function requires exactly one of index,",
+            "ids, or where_clause.")
     }
 
     if (!length(info_file)) {
@@ -122,6 +123,6 @@ Slinky$methods(toEset = function(gctx = NULL,
         stop("Rownames of metadata and colnames of expression data did not ",
             "match. Aborting.")
     }
-    pd <- new("AnnotatedDataFrame", data = info)
-    Biobase::ExpressionSet(assayData = data, phenoData = pd)
+    SummarizedExperiment::SummarizedExperiment(assays = list(exprs = data), 
+                                               colData = info)
 })

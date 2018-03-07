@@ -7,13 +7,14 @@ Author: Eric J. Kort
 Maintainer: Eric J. Kort  <eric.kort@vai.org>
 Description: Wrappers to clue.io REST API as well as helpers for dealing with 
     LINCS gctx files, extracting data sets of interest, converting to
-    Expression Sets, and some facilities for performing streamlined 
-    differential expression analysis of these data sets.
+    SummarizedExperiment objects, and some facilities for 
+    performing streamlined differential expression analysis of these data sets.
 License: MIT + file LICENSE
 Depends:
     R (>= 3.5.0),
 Imports:
     Biobase, 
+    SummarizedExperiment,
     curl,
     dplyr,
     foreach,
@@ -26,7 +27,7 @@ Collate:
     'slinky_info.R'
     'slinky_gctx.R'
     'slinky_clue.R'
-    'slinky_eset.R'
+    'slinky_sumexp.R'
     'slinky_chdir.R'
     'slinky_ks.R'
     'slinky_scoring.R'

@@ -85,7 +85,7 @@ amox_gold <- sl$clue.instances(where_clause=list("pert_type"="trt_cp",
                  "pert_iname"="amoxicillin",
                  "cell_id" = "MCF7",
                  "is_gold"=TRUE), poscon = "omit")               
-amox_gold_eset <- sl$toEset(ids = amox_gold)
+amox_gold_sumexp <- sl$toSummarizedExperiment(ids = amox_gold)
 
 ```
 

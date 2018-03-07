@@ -105,60 +105,66 @@ test_that("Vehicle control can be retrieved for perturbations", {
 })
 test_that("Instance ids can be retrieved", {
   skip_if_devel()
-  tt <- sl$clue.instances(where_clause=list(pert_desc = "sirolimus"))
+  tt <- sl$clue.instances(where_clause = list(pert_desc = "sirolimus"))
   expect_equal(length(tt), 664)
 })
 test_that("Profiles can be retrieved by id", {
   skip_if_devel()
-  tt <- sl$clue("profiles", where_clause=list(pert_desc = "sirolimus"),
+  tt <- sl$clue("profiles", where_clause = list(pert_desc = "sirolimus"),
                 fields = c("pert_dose", "distil_id"))
   expect_equal(ncol(tt), 2)
-  tt <- sl$clue("profiles", ids=tt$distil_id)
+  tt <- sl$clue("profiles", ids = tt$distil_id)
   expect_equal(length(tt), 39)
 })
 
 
-context("Eset")
-test_that("Eset can be created", {
+context("SummarizedExperiment")
+test_that("SummarizedExperiment can be created", {
   skip_if_devel()
   sl$close()
   sl <- Slinky$new(user_key, system.file("extdata",
                                          "demo.gctx",
-                                         package="slinky"))
-  eset <- sl$toEset(index = list(1:978, 1:10),
+                                         package = "slinky"))
+  eset <- sl$toSummarizedExperiment(index = list(1:978, 1:10),
                     info_file = system.file("extdata",
                                             "demo_inst_info.txt",
-                                            package="slinky"))
-  expect_equal(pData(eset)[1,1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
-  expect_true(all.equal(exprs(eset)[5,10],  12, tol=0.00001))
+                                            package = "slinky"))
+  expect_equal(eset$inst_id[1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
+  expect_true(all.equal(SummarizedExperiment::assays(eset)[[1]][5,10],  
+                        12, 
+                        tol = 0.00001))
   expect_equal(as.numeric(nrow(eset)),  978)
   expect_equal(as.numeric(ncol(eset)),  10)
   sl$close()
 })
-test_that("Eset can be created by where clause", {
+test_that("SummarizedExperiment can be created by where clause", {
   skip_if_devel()
   sl$close()
   sl <- Slinky$new(user_key,
-                   gctx = system.file("extdata", "demo.gctx", package="slinky"),
-                   info = system.file("extdata", "demo_inst_info.txt", package="slinky"))
-  where_clause = list("distil_id"='CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17')
-  eset <- sl$toEset(where_clause=where_clause)
-  expect_equal(pData(eset)[1,1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
+                   gctx = system.file("extdata", "demo.gctx", 
+                                      package = "slinky"),
+                   info = system.file("extdata", "demo_inst_info.txt", 
+                                      package = "slinky"))
+  where_clause = list("distil_id" = 'CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17')
+  eset <- sl$toSummarizedExperiment(where_clause = where_clause)
+  expect_equal(eset$inst_id[1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
   expect_equal(as.numeric(nrow(eset)),  978)
   expect_equal(as.numeric(ncol(eset)),  5)
   sl$close()
 })
 
-## fixme
-test_that("Eset can be created with controls id'd automatically", {
+test_that("SummarizedExperiment can be created with controls id'd automatically", {
   skip_if_devel()
   sl$close()
   sl <- Slinky$new(user_key,
-                   gctx = system.file("extdata", "demo.gctx", package="slinky"),
-                   info = system.file("extdata", "demo_inst_info.txt", package="slinky"))
-  where_clause = list("pert_iname"="amoxicillin","cell_id"="MCF7")
-  eset <- sl$toEset(where_clause=where_clause, controls=TRUE)
-  expect_equal(pData(eset)[1,1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
+                   gctx = system.file("extdata", "demo.gctx", 
+                                      package = "slinky"),
+                   info = system.file("extdata", "demo_inst_info.txt", 
+                                      package = "slinky"))
+  where_clause = list("pert_iname" = "amoxicillin", "cell_id" = "MCF7")
+  eset <- sl$toSummarizedExperiment(where_clause = where_clause, 
+                                    controls = TRUE)
+  expect_equal(eset$inst_id[1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
   expect_equal(as.numeric(nrow(eset)),  978)
   expect_equal(as.numeric(ncol(eset)),  64)
   sl$close()
@@ -168,9 +174,13 @@ test_that("Failed query exits somewhat gracefully", {
   skip_if_devel()
   sl$close()
   sl <- Slinky$new(user_key,
-                   system.file("extdata", "demo.gctx", package="slinky"),
-                   info = system.file("extdata", "demo_inst_info.txt", package="slinky"))
-  expect_warning(tt <- sl$toEset(where_clause = list(pert_iname="foobar")), "no results")
+                   system.file("extdata", "demo.gctx", package = "slinky"),
+                   info = system.file("extdata", 
+                                      "demo_inst_info.txt", 
+                                      package = "slinky"))
+  expect_warning(
+    tt <- sl$toSummarizedExperiment(where_clause = list(pert_iname="foobar")), 
+   "no results")
   expect_null(tt)
   sl$close()
 })
@@ -182,19 +192,19 @@ gctx <- system.file("extdata", "demo.gctx", package="slinky")
 sl <- Slinky$new(user_key, gctx)
 test_that("Column names can be retrieved", {
   skip_if_devel()
-  tt <- sl$colnames(index=list(1:3))
+  tt <- sl$colnames(index = list(1:3))
   expect_equal(length(tt),  3)
   expect_equal(tt[1], "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
 })
 test_that("Row names can be retrieved", {
   skip_if_devel()
-  tt <- sl$rownames(index=list(1:3))
+  tt <- sl$rownames(index = list(1:3))
   expect_equal(length(tt),  3)
   expect_equal(tt[1], "5720")
 })
 test_that("Matrix data can be read", {
   skip_if_devel()
-  tt <- sl$readGCTX(index=list(1:3, 5:10))
+  tt <- sl$readGCTX(index = list(1:3, 5:10))
   expect_equal(nrow(tt), 3)
   expect_equal(ncol(tt), 6)
   expect_equal(colnames(tt)[6], "KDA001_MCF7_144H_X2_B1_DUO44HI45LO:P15")
@@ -204,8 +214,8 @@ test_that("Matrix data can be read with file specified by constructor", {
   skip_if_devel()
   sl = Slinky$new(key = user_key, gctx = system.file("extdata",
                                                      "demo.gctx",
-                                                     package="slinky"))
-  tt <- sl$readGCTX(gctx, index=list(1:3, 5:10))
+                                                     package = "slinky"))
+  tt <- sl$readGCTX(gctx, index = list(1:3, 5:10))
   expect_equal(nrow(tt), 3)
   expect_equal(ncol(tt), 6)
   expect_equal(colnames(tt)[6], "KDA001_MCF7_144H_X2_B1_DUO44HI45LO:P15")
@@ -214,19 +224,20 @@ test_that("Matrix data can be read with file specified by constructor", {
 context("Characteristic direction")
 sl <- Slinky$new(user_key, system.file("extdata",
                                        "demo.gctx",
-                                       package="slinky"))
-eset <- sl$toEset(index = list(1:978, 1:10),
+                                       package = "slinky"))
+eset <- sl$toSummarizedExperiment(index = list(1:978, 1:10),
                   info_file = system.file("extdata",
                                           "demo_inst_info.txt",
-                                          package="slinky"))
-test_that("Characteristic direction based on expression sets", {
+                                          package = "slinky"))
+test_that("Characteristic direction based on SummarizedExperiment", {
   skip_if_devel()
   tt <- sl$chDir(eset[, 1:4], eset[, 5:10])
-  expect_equivalent(tt[1], 0.004667438, tol=0.00001)
+  expect_equivalent(tt[1], 0.004667438, tol = 0.00001)
 })
 test_that("Characteristic direction can be calculated based on two matrices", {
   skip_if_devel()
-  tt <- sl$chDir(exprs(eset[, 1:4]), exprs(eset[, 5:10]))
-  expect_equivalent(tt[1], 0.004667438, tol=0.00001)
+  tt <- sl$chDir(SummarizedExperiment::assays(eset)[[1]][, 1:4], 
+                 SummarizedExperiment::assays(eset)[[1]][, 5:10])
+  expect_equivalent(tt[1], 0.004667438, tol = 0.00001)
 })
 

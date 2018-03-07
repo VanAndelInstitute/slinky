@@ -32,7 +32,7 @@ Slinky$methods(loadInfo = function(file = NULL, verbose = FALSE,
     }, error = function(e) {
         print(e)
         if (length(file) ||
-            .self$.info != "GSE92742_Broad_LINCS_inst_info.txt") {
+            .self$.info != "GSE92742_Broad_LINCS_inst_info.txt.gz") {
             message("Could not load specified info file: ", file,
                 ". Please verify ", "file path.")
         } else {
@@ -58,7 +58,7 @@ Slinky$methods(.locateInfo = function(verbose = FALSE) {
     \\subsection{Details}{Use the `download` function for general use.}"
 
     # this is the instance level metadata file from LINCS
-    fn <- .self$.info  # defaults to 'GSE92742_Broad_LINCS_inst_info.txt'
+    fn <- .self$.info  # defaults to 'GSE92742_Broad_LINCS_inst_info.txt.gz'
     loc <- NULL
 
     # try to locate metadata file
@@ -67,7 +67,7 @@ Slinky$methods(.locateInfo = function(verbose = FALSE) {
     info_user <- file.exists(fn)
     # if cannot find it, download it.
     if (!info_lib && !info_wd && !info_user) {
-        if (.self$.info != "GSE92742_Broad_LINCS_inst_info.txt") {
+        if (.self$.info != "GSE92742_Broad_LINCS_inst_info.txt.gz") {
             stop("Could not locate specified info file.  \nSet info attribute",
                 " of Slinky object to NULL to fetch default file from GEO.")
         }

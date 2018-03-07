@@ -450,16 +450,44 @@ differences between samples.
 ```{r, eval=TRUE}
 library(ggplot2)
 library(Rtsne)
-eset <- sl$toEset(index = list(NULL, 1:131))
+library(slinky)
+
+wd <- "\\\\nasgw.hpc.vai.org\\projects_secondary\\jovinge\\LINCS\\"
+sl <- Slinky$new(readLines(paste0(wd, ".api"))[1],
+                 paste0(wd, "GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"))
+sl$loadInfo("GSE92742_Broad_LINCS_inst_info.txt.gz")
+
+ix <- which(sl$metadata$pert_iname %in% c("sirolimus",   
+                                          "geldanamycin",
+                                          "wortmannin",
+                                          "trichostatin-a",
+                                          "vorinostat") & 
+            sl$metadata$cell_id == "VCAP" &
+            sl$metadata$pert_time == 24)
+ix <- which(sl$colnames() %in% sl$metadata$inst_id[ix])
+eset <- sl$toEset(index = list(seq_len(978), ix))
+
+
+
+
 set.seed(100)
-ts <- Rtsne(t(Biobase::exprs(eset)))
+ts <- Rtsne(t(Biobase::exprs(eset)), perplexity = 50)
 tsne_plot <- data.frame(x = ts$Y[,1], 
                         y = ts$Y[,2], 
                         treatment = eset$pert_iname,
                         plate = eset$rna_plate)
 ggplot(tsne_plot) + 
-    geom_point(aes(x=x, y=y, color=plate, shape=treatment)) + 
-    guides(shape=guide_legend(ncol=2))
+    geom_point(aes(x=x, y=y, color=treatment)) + 
+    guides(color = FALSE) +
+    labs(x="TSNE X", y="TSNE Y") + 
+    theme(axis.title = element_text(face = "bold", color = "gray"))
+
+ggplot(tsne_plot) + 
+    geom_point(aes(x=x, y=y, color=plate)) + 
+    guides(color = FALSE) +
+    labs(x="TSNE X", y="TSNE Y") + 
+    theme(axis.title = element_text(face = "bold", color = "gray"))
+
 ```
 
 Ideally, the points would cluster by treatment and not by plate.  Alas, as 

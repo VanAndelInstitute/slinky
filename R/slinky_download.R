@@ -114,7 +114,7 @@ Slinky$methods(download = function(type = c("expression", "info", "readme"),
 
     if (type == "readme") {
         openPDF(normalizePath(of))
-    } else {
+    } else if (type != "info") { 
         if (verbose)
             message("\n\nGunzipping...")
         tryCatch({
@@ -122,14 +122,12 @@ Slinky$methods(download = function(type = c("expression", "info", "readme"),
                 stdout = TRUE)
             of <- gsub(".gz", "", of)
         }, error = function(e) {
-            message("Failed to gunzip.",
-                    "Please gunzip the downloaded file manually.")
+            message("Failed to gunzip (perhaps gzip not installed on your system?.")
         })
     }
-    fn <- gsub(".gz", "", of)
     if (verbose)
         message(paste0("\n\nDownload complete.  File saved to ",
-            getwd(), "/", fn, "\n"))
-    return(fn)
+            getwd(), "/", of, "\n"))
+    return(of)
 })
 

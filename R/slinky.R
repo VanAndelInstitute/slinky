@@ -72,7 +72,7 @@ Slinky$methods(
         if (length(info)) {
             .self$.info = info
         } else {
-            .self$.info = "GSE92742_Broad_LINCS_inst_info.txt"
+            .self$.info = "GSE92742_Broad_LINCS_inst_info.txt.gz"
         }
         .self$metadata = NULL
     }

@@ -1,7 +1,7 @@
 Package: slinky
 Type: Package
 Title: Putting the fun in LINCS L1000 data analysis
-Version: 0.99.4
+Version: 0.99.5
 Date: 2018-03-01
 Author: Eric J. Kort
 Maintainer: Eric J. Kort  <eric.kort@vai.org>

@@ -1,6 +1,6 @@
 ---
 title: "LINCS analysis with slinky"
-author: "Eric J. Kort"
+author: "Eric J. Kort (eric.kort@vai.org)"
 email: "eric.kort@vai.org"
 date: "`r Sys.Date()`"
 abstract: >
@@ -10,7 +10,8 @@ abstract: >
   challenge.  Here we demonstrate how to use the slinky package to simplify 
   filtering and accessing this data in an efficient analysis pipeline.
 output: 
-  BiocStyle::pdf_document
+  rmarkdown::html_vignette:
+    toc: true
 vignette: >
   %\VignetteIndexEntry{"LINCS analysis with slinky"}
   %\VignetteEngine{knitr::rmarkdown}
@@ -452,7 +453,7 @@ visualization of the data, including some basic quality control measures.
 For example, we could explore to what extent batch (plate) effects are driving 
 differences between samples. 
 
-```{r, eval=TRUE}
+```{r, fig.width=6}
 library(ggplot2)
 library(Rtsne)
 
@@ -470,15 +471,19 @@ ggplot(tsne_plot) +
     labs(x = "TSNE X", y = "TSNE Y") + 
     theme(axis.title = element_text(face = "bold", color = "gray"))
 
+```
+
+Ideally, the points would cluster by treatment and not by plate.  Alas, as 
+can be seen in the resulting figure above. Compare that to the same plot 
+colored by treatment.
+
+```{r, fig.width=6}
 ggplot(tsne_plot) + 
     geom_point(aes(x = x, y = y, color = treatment)) + 
     labs(x = "TSNE X", y = "TSNE Y") + 
     theme(axis.title = element_text(face = "bold", color = "gray"))
-
 ```
 
-Ideally, the points would cluster by treatment and not by plate.  Alas, as 
-can be seen in the resulting figure reproduced below, that is not the case. 
 This underscores the importance of constructing your analysis of this data set
 in a way that controls for batch effects.
 

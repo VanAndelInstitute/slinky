@@ -12,6 +12,7 @@ Description: Wrappers to clue.io REST API as well as helpers for dealing with
 License: MIT + file LICENSE
 Depends:
     R (>= 3.4.3),
+    GenomeInfoDbData
 Imports:
     SummarizedExperiment,
     curl,

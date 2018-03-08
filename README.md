@@ -8,7 +8,7 @@ space.  However, using this large and decentralized data set presents its own ch
 We are in the process of preparing to submit this package to the BioConductor project.  In the mean time, you can install it and its dependencies as follows:
 
 ```
-devtools::install_git("https://github.com/vanandelinstitute/slinky")
+devtools::install_github("vanandelinstitute/slinky")
 ```
 
 # Prerequisites

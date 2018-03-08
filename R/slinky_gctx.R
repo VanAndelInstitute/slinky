@@ -115,5 +115,7 @@ Slinky$methods(close = function() {
     "Close any open HDF5 (gctx) file connections.
     \\subsection{Return Value}{None.  Called for side effect of closing
         connections.}"
-    rhdf5::h5closeAll()
+    # note: this is deprecated.  with devel version of rhdf5 we will need to use
+    # h5closeAll()
+    rhdf5::H5close()
 })

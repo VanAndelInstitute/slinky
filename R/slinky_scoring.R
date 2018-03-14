@@ -231,11 +231,11 @@ Slinky$methods(.zs = function(treat, control) {
         mean(abs(x - mean(x)) * 1.253314)
     }
 
-    medians <- apply(control, 1, median)
-    mads <- apply(control, 1, mad)
-    meanads <- apply(control, 1, meanad)
+    medians <- apply(as.matrix(control), 1, median)
+    mads <- apply(as.matrix(control), 1, mad)
+    meanads <- apply(as.matrix(control), 1, meanad)
     ix <- which(mads == 0)
     mads[ix] <- meanads[ix]
 
-    apply(treat, 2, function(x) { (x - medians) / mads})
+    apply(as.matrix(treat), 2, function(x) { (x - medians) / mads})
 })

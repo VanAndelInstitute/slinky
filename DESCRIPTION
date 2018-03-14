@@ -11,7 +11,7 @@ Description: Wrappers to clue.io REST API as well as helpers for dealing with
     performing streamlined differential expression analysis of these data sets.
 License: MIT + file LICENSE
 Depends:
-    R (>= 3.4.3),
+    R (>= 3.4.0),
     GenomeInfoDbData
 Imports:
     SummarizedExperiment,

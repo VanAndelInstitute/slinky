@@ -1,4 +1,5 @@
 #' @importFrom SummarizedExperiment SummarizedExperiment
+#' @importFrom SummarizedExperiment assays
 #' @export
 Slinky$methods(toSummarizedExperiment = function(gctx = NULL,
                                 index = NULL,

@@ -225,17 +225,19 @@ Slinky$methods(rzs = function(treat,
 
 
 Slinky$methods(.zs = function(treat, control) {
-    "Internal function for converting expression values to robust  z-scores"
-
-    meanad <- function(x) {
-        mean(abs(x - mean(x)) * 1.253314)
-    }
-
-    medians <- apply(control, 1, median)
-    mads <- apply(control, 1, mad)
-    meanads <- apply(control, 1, meanad)
-    ix <- which(mads == 0)
-    mads[ix] <- meanads[ix]
-
-    apply(treat, 2, function(x) { (x - medians) / mads})
+  "Internal function for converting expression values to robust  z-scores"
+  
+  meanad <- function(x) {
+    mean(abs(x - mean(x)) * 1.253314)
+  }
+  
+  medians <- apply(as.matrix(control), 1, median)
+  mads <- apply(as.matrix(control), 1, mad)
+  meanads <- apply(as.matrix(control), 1, meanad)
+  ix <- which(mads == 0)
+  mads[ix] <- meanads[ix]
+  
+  apply(as.matrix(treat), 2, function(x) { (x - medians) / mads})
 })
+
+

@@ -1,6 +1,6 @@
 # sanity check
 Slinky$methods(
-    .check.clue = function() {
+    .checkClue = function() {
         res <- httr::GET(url = "clue.io/api")
         grepl("API Access", httr::content(res, as = "text"))
     }
@@ -48,7 +48,7 @@ Slinky$methods(clue = function(endpoint = c("sigs",
     }}
     \\subsection{Return Value}{Data returned by Slinky.api as a data.frame}"
 
-    if (!.self$.check.clue()) {
+    if (!.self$.checkClue()) {
         stop("Could not connect to clue.io APi.  Please verify connecivity.")
     }
 
@@ -68,12 +68,12 @@ Slinky$methods(clue = function(endpoint = c("sigs",
     key <- .self$.user_key
     base <- .self$.base
     if (count) {
-        return(.self$clue.count(endpoint, where_clause))
+        return(.self$clueCount(endpoint, where_clause))
     } else {
         if (length(ids)) {
             count <- length(ids)
         } else {
-            count <- .self$clue.count(endpoint, where_clause)
+            count <- .self$clueCount(endpoint, where_clause)
         }
     }
 
@@ -178,7 +178,7 @@ Slinky$methods(clue = function(endpoint = c("sigs",
 
 
 #' @export
-Slinky$methods(clue.vehicle = function(ids, verbose = FALSE) {
+Slinky$methods(clueVehicle = function(ids, verbose = FALSE) {
     "Fetch the vehicle control applicable to given ids (distil_id).  Expects
         that perturbagen is of type trt_cp.
     \\subsection{Parameters}{
@@ -210,7 +210,7 @@ Slinky$methods(clue.vehicle = function(ids, verbose = FALSE) {
 
 
 #' @export
-Slinky$methods(clue.instances = function(where_clause = NULL,
+Slinky$methods(clueInstances = function(where_clause = NULL,
                                             verbose = FALSE,
                                             poscon = c("keep", "omit")) {
     "Convenience wrapper to query function to retrieve instance ids meeting
@@ -258,7 +258,7 @@ Slinky$methods(clue.instances = function(where_clause = NULL,
 })
 
 #' @export
-Slinky$methods(clue.count = function(endpoint = c("sigs",
+Slinky$methods(clueCount = function(endpoint = c("sigs",
                                                     "cells",
                                                     "genes",
                                                     "perts",

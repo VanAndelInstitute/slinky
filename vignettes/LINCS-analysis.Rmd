@@ -30,12 +30,44 @@ The The Library of Integrated Network-Based Cellular Signatures (LINCS)
 program has created over 1 million transcriptional profiles 
 [@pmid29195078, @pmid29199020] that 
 detail the effects of thousands of drugs and genetic perturbagens in 
-gene expression space.  This creates a Rosetta stone of sorts, allowing 
+gene expression space (known as the "L1000" dataset as it is based on the 
+measured expression of approximately 1000 highly variable genes).  
+This creates a Rosetta stone of sorts, allowing 
 us to translate between disease states, drug treatments, and genetics. 
 This resource holds the promise of unlocking new therapies for diseases, and 
 deeper understanding of how cells respond to drugs and gene perturbation.  
-New tools are needed to simplify working with this large data set which 
-is necessarily spread across several (large) files and information sources.
+
+The LINCS L1000 data set has three components: the gene expression data
+itself (available as a "GCTX" file which is in HDF5 format), a metadata file 
+(as an "INFO" file, in tab delimited format), and additional metadata 
+that is made available through a web-based API (http://clue.io).  Analysis 
+of this dataset thus requires familiarity with the contents and formats of 
+these three resources, as well as the R tools required to interact with them.
+The goal of the slinky package is to relieve the user of details of file 
+access and web calls and provide a simplified interface to these various 
+resources.
+
+For example, consider the high level method function \\code{load}.  If 
+provided a single argument (the name of a perturbagen of interest, for 
+example "amoxicillin"), the function does the following:
+
+* Queries the clue.io API for all instances that were perturbed by amoxicillin.
+* Filters out instances that have not been designated by the LINCS L1000 
+project as "gold" (by virtue of their low inter-replicate variability). 
+* Identifies the appropriate control for these samples (in this case, DMSO)
+* Finds the corresponding control instances comign from the same plates as 
+the perturbed samples.
+* Loads the corresponing data from the local GCTX file (giving a warning if 
+not all the identified samples are available in the local GCTX file)
+* Assembles the expression data and metadata into a SummarizedExperiment 
+object and returns it.
+
+These steps can be adjusted with additional optional arguments to 
+\\code{load}.  For users more familiear with the underlying data resources, 
+much more granular control can be achieved through calls to the lower level 
+functions including \\code{toSummarizedExperiment}, \\code{clue}, and 
+\\code{readGCTX}.  Examples of these and other functions provided by this 
+package are described in the balance of this vignette.
 
 # Terminology
 
@@ -78,7 +110,7 @@ aria2c -x 8 -s 8 https://goo.gl/3TigFI
 gzip -d *.gz
 ```
 
-Alternatively, you can use the slinky library itself to fetch this file. 
+Alternatively, you can use the slinky package itself to fetch this file. 
 Again, this will take a while and may fail if your connection is not rock
 solid.
 
@@ -123,20 +155,21 @@ sl <- Slinky$new(key, gctx)
 
 ```
 
-For the purposes of this vignette, we will use a small subset of the L1000 data
-distributed with this package, and the demo API key from clue.io.  Please do 
-not use the demo key for actual analysis. **Note:** the data in this 
+For the purposes of this vignette, we will use a small subset of the L1000 
+data distributed with this package, and the demo API key from clue.io.  
+Please do not use the demo key for actual analysis. **Note:** the data in this 
 demonstration dataset has been rounded to integer to keep the package size 
 under 4MB as required by the BioConductor project. 
+
 
 ```{r, echo=TRUE, message=F, warning=F, eval=TRUE}
 library(slinky)
 user_key <- httr::content(httr::GET("https://api.clue.io/temp_api_key"),
-as="parsed")$user_key
+                          as = "parsed")$user_key
 sl <- Slinky$new(user_key, 
-                 system.file("extdata", "demo.gctx", package="slinky"),
-                 system.file("extdata", "demo_inst_info.txt",
-                                package="slinky"))
+                system.file("extdata", "demo.gctx", package = "slinky"),
+                system.file("extdata", "demo_inst_info.txt",
+                                package = "slinky"))
 
 ```
 
@@ -187,10 +220,10 @@ amoxicillin in the A375 cell line, but are also designated as "gold" by the
 LINCS program (by virtue of having low variance across replicates):
 
 ```{r, echo=TRUE, eval=TRUE}
-amox_gold <- sl$clue.instances(where_clause=list("pert_type"="trt_cp",
-                                                "pert_iname"="amoxicillin",
+amox_gold <- sl$clueInstances(where_clause = list("pert_type" = "trt_cp",
+                                                "pert_iname" = "amoxicillin",
                                                 "cell_id" = "MCF7",
-                                                "is_gold"=TRUE), 
+                                                "is_gold" = TRUE), 
                                poscon = "omit")
 
 ```
@@ -201,7 +234,7 @@ that have a `pert_type` of `trt_poscon` in clue.io's `profiles` endpoint but
 are recoded as `trt_cp` in the `sigs` endpoint.  Since the `is_fold` metadata
 must be obtained from the `sigs` endpoint, this can cause confusion/errors in
 downstream analysis.  Therefore, these samples can be omitted from query
-results.  In fact, this is the default behavior of the `clue.instances` method
+results.  In fact, this is the default behavior of the `clueInstances` method
 (the argument was simply specified above for emphasis).
 
 You could then load these instances by "brute force" as we did above.
@@ -218,7 +251,7 @@ easily done with the `toSummarizedExperiment` method.
 
 ```{r, echo=TRUE, message=F, warning=F, eval=TRUE}
 
-amox_gold_eset <- sl$toSummarizedExperiment(index = list( NULL, ix))
+amox_gold_sumex <- sl$toSummarizedExperiment(index = list( NULL, ix))
 
 ```
 
@@ -226,7 +259,7 @@ Or you can specify the ids directly.
 
 ```{r, echo=TRUE, message=F, warning=T, eval=TRUE}
 
-amox_gold_eset <- sl$toSummarizedExperiment(ids = amox_gold)
+amox_gold_sumex <- sl$toSummarizedExperiment(ids = amox_gold)
 
 ```
 
@@ -236,7 +269,7 @@ directly.
 
 ```{r, echo=TRUE, message=F, warning=T, eval=TRUE}
 
-amox_gold_eset <- sl$toSummarizedExperiment(
+amox_gold_sumex <- sl$toSummarizedExperiment(
                       where_clause = list("pert_type" = "trt_cp",
                         "pert_iname" = "amoxicillin",
                         "cell_id" = "MCF7",
@@ -266,17 +299,18 @@ vocabularies, but we exploit the "repositioning" data available at the
 ```{r, echo=TRUE, message=T, warning=F, eval=TRUE}
 
 fda <- sl$clue("rep_drugs", 
-            where_clause=list("status_source"=list(like = "FDA Orange"),
-                "final_status"="Launched",
-                "animal_only"="0",
-                "in_cmap"=TRUE),
-            verbose=FALSE)
+            where_clause = list("status_source" = list(like = "FDA Orange"),
+                "final_status" = "Launched",
+                "animal_only" = "0",
+                "in_cmap" = TRUE),
+            verbose = FALSE)
 
-fda_pert <- sl$clue.instances(poscon = "omit",
-                where_clause=list("pert_type"="trt_cp", 
-                                    "is_gold"=TRUE,
-                                    "pert_iname"=list("inq"=fda$pert_iname)),
-                verbose=FALSE)
+fda_pert <- sl$clueInstances(poscon = "omit",
+                where_clause = list("pert_type" = "trt_cp", 
+                                    "is_gold" = TRUE,
+                                    "pert_iname" = 
+                                              list("inq" = fda$pert_iname)),
+                verbose = FALSE)
 
 
 ```
@@ -285,7 +319,7 @@ We do not have access to most of these instances in the demo GCTX file, but
 with the full GCTX file we could then load this data as follows:
 
 ```{r, eval=FALSE}
-fda_gold_eset <- sl$toSummarizedExperiment(ids = fda_pert, controls = TRUE)
+fda_gold_sumex <- sl$toSummarizedExperiment(ids = fda_pert, controls = TRUE)
 ```
 
 Reading all 32891 instances from the full gctx file from
@@ -312,7 +346,7 @@ instances.
 
 ```{r eval=TRUE}
 
-veh <- sl$clue.vehicle(amox_gold, verbose=FALSE)
+veh <- sl$clueVehicle(amox_gold, verbose=FALSE)
 
 ```
 
@@ -335,7 +369,8 @@ mixture of those types.
 
 ```{r eval=TRUE}
 controls <-  sl$controls(ids = amox_gold)
-amox_and_control <- sl$toSummarizedExperiment(ids = c(amox_gold, controls$distil_id))
+amox_and_control <- sl$toSummarizedExperiment(ids = c(amox_gold, 
+                                                      controls$distil_id))
 ```
 
 In fact, you can skip the step of identifying the same-plate controls
@@ -344,7 +379,8 @@ altogether and simply specify `controls=TRUE` when calling
 
 
 ```{r eval=TRUE}
-amox_and_control <- sl$toSummarizedExperiment(ids = amox_gold, controls=TRUE)
+amox_and_control <- sl$toSummarizedExperiment(ids = amox_gold, 
+                                              controls = TRUE)
 ```
 
 # Gene signatures
@@ -457,14 +493,14 @@ differences between samples.
 library(ggplot2)
 library(Rtsne)
 
-eset <- sl$toSummarizedExperiment(index = list(seq_len(978), seq_len(131)))
+sumex <- sl$toSummarizedExperiment(index = list(seq_len(978), seq_len(131)))
 
 set.seed(100)
-ts <- Rtsne(t(SummarizedExperiment::assays(eset)[[1]]), perplexity = 10)
+ts <- Rtsne(t(SummarizedExperiment::assays(sumex)[[1]]), perplexity = 10)
 tsne_plot <- data.frame(x = ts$Y[,1], 
                         y = ts$Y[,2], 
-                        treatment = eset$pert_iname,
-                        plate = eset$rna_plate)
+                        treatment = sumex$pert_iname,
+                        plate = sumex$rna_plate)
 
 ggplot(tsne_plot) + 
     geom_point(aes(x = x, y = y, color = plate)) + 

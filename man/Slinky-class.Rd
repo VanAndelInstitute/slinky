@@ -70,7 +70,7 @@ based on two datasets.
 }}
 \subsection{Return Value}{Data returned by Slinky.api as a data.frame}}
 
-\item{\code{clue.count(endpoint = c("sigs", "cells", "genes", "perts", "plates",
+\item{\code{clueCount(endpoint = c("sigs", "cells", "genes", "perts", "plates",
   "profiles", "rep_drugs", "pcls"), where_clause = "")}}{Wrapper for Slinky.io REST calls to retrieve record counts
 \subsection{Parameters}{
 \itemize{
@@ -80,7 +80,7 @@ based on two datasets.
 }}
 \subsection{Return Value}{Count of records satisfying query}}
 
-\item{\code{clue.instances(where_clause = NULL, verbose = FALSE, poscon = c("keep",
+\item{\code{clueInstances(where_clause = NULL, verbose = FALSE, poscon = c("keep",
   "omit"))}}{Convenience wrapper to query function to retrieve instance ids meeting
 specified criteria.
 \subsection{Parameters}{
@@ -99,7 +99,7 @@ specified criteria.
 \subsection{Details}{This is a convenience wrapper to the signature API
     which queries clue.io and unwraps response. }}
 
-\item{\code{clue.vehicle(ids, verbose = FALSE)}}{Fetch the vehicle control applicable to given ids (distil_id).  Expects
+\item{\code{clueVehicle(ids, verbose = FALSE)}}{Fetch the vehicle control applicable to given ids (distil_id).  Expects
     that perturbagen is of type trt_cp.
 \subsection{Parameters}{
 \itemize{
@@ -194,7 +194,7 @@ specified criteria.
     Note that this function assumes that each plate represented in 
     \code{treat} is also represented in \code{control}}}
 
-\item{\code{distil.to.plate(x)}}{Extract the plate id from distil_id
+\item{\code{distilToPlate(x)}}{Extract the plate id from distil_id
 \subsection{Parameters}{
 \itemize{
     \item{\code{x} A vector of distil_ids, a dataframe with
@@ -254,6 +254,27 @@ describing the instances in the gctz file.}
     values in the vectorized matrix.  In this way, genes that
     consistently have high ranks within each sample will have a higher
     KS score than those that are inconsistently ranked.}}
+
+\item{\code{load(pert, cell_line = NULL, type = c("trt_cp", "trt_sh", "trt_oe"),
+  gold = TRUE, controls = TRUE, verbose = FALSE)}}{High level function to load samples based on specified perturbation.
+\subsection{Parameters}{
+\itemize{
+  \item{\code{pert} Name of the desired perturbagen.}
+  \item{\code{pert} Optional vector of cell lines to restrict results 
+                      to.}
+  \item{\code{type} Type of perturbation (one of trt_cp, trt_sh, trt_oe).}
+  \item{\code{gold} Should we restrict to 'gold' instances? Default is 
+                      yes.}
+  \item{\code{controls} Include same-plate controls?  Default is yes.}
+  \item{\code{verbose} Do you want to know how things are going?
+          Default is FALSE}}}
+\subsection{Return Value}{Summarized Experiment}
+\subsection{Details}{This is a convenience wrapper to the
+    \code{toSummarizedExperiment} method which provides more granular 
+    control.  Note that for \code{type}, the options are \code{trt_cp}
+    (the default) for compound (i.e. drug) treated samples, 
+    \code{trt_sh} for short hairpin treated samples, and 
+    \code{trt_oe} for samples treated with over expression constructs.}}
 
 \item{\code{loadInfo(file = NULL, verbose = FALSE, reload = FALSE)}}{Load the info file into memory if not already loaded.
 \subsection{Parameters}{

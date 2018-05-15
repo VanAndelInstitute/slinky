@@ -1,14 +1,15 @@
 Package: slinky
 Type: Package
 Title: Putting the fun in LINCS L1000 data analysis
-Version: 0.99.7
+Version: 0.99.8
 Date: 2018-03-01
 Author: Eric J. Kort
 Maintainer: Eric J. Kort  <eric.kort@vai.org>
-Description: Wrappers to clue.io REST API as well as helpers for dealing with 
-    LINCS gctx files, extracting data sets of interest, converting to
-    SummarizedExperiment objects, and some facilities for 
-    performing streamlined differential expression analysis of these data sets.
+Description: Wrappers to query the L1000 metadata available via the clue.io 
+    REST API as well as helpers for dealing with LINCS gctx files, extracting 
+    data sets of interest, converting to SummarizedExperiment objects, and 
+    some facilities for performing streamlined differential expression 
+    analysis of these data sets.
 License: MIT + file LICENSE
 Depends:
     R (>= 3.5.0),

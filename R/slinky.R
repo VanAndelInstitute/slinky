@@ -81,7 +81,7 @@ Slinky$methods(
 
 #' @export
 Slinky$methods(
-    distil.to.plate = function(x) {
+    distilToPlate = function(x) {
         "Extract the plate id from distil_id
         \\subsection{Parameters}{
         \\itemize{
@@ -94,7 +94,7 @@ Slinky$methods(
         if (class(x) == "SummarizedExperiment") {
             if (!length(x$distil_id)) {
                 stop(
-                    "SummarizedExperiment passed to distil.to.plate function, ",
+                    "SummarizedExperiment passed to distilToPlate function, ",
                     "colData did not contain distil_id element."
                 )
             }
@@ -107,7 +107,7 @@ Slinky$methods(
                 plates <- gsub("(_X\\d{1,1})_.*", "\\1", x$inst_id)
             } else {
                 stop(
-                    "Dataframe passed to distil.to.plate function, but it",
+                    "Dataframe passed to distilToPlate function, but it",
                     "did not contain distil_id or inst_id element."
                 )
             }
@@ -117,4 +117,50 @@ Slinky$methods(
         return(plates)
 
     }
+)
+
+
+#' @export
+Slinky$methods(
+  load = function(pert, 
+                  cell_line = NULL,
+                  type = c("trt_cp", "trt_sh", "trt_oe"), 
+                  gold = TRUE, 
+                  controls = TRUE,
+                  verbose = FALSE) {
+    "High level function to load samples based on specified perturbation.
+    \\subsection{Parameters}{
+    \\itemize{
+      \\item{\\code{pert} Name of the desired perturbagen.}
+      \\item{\\code{pert} Optional vector of cell lines to restrict results 
+                          to.}
+      \\item{\\code{type} Type of perturbation (one of trt_cp, trt_sh, trt_oe).}
+      \\item{\\code{gold} Should we restrict to 'gold' instances? Default is 
+                          yes.}
+      \\item{\\code{controls} Include same-plate controls?  Default is yes.}
+      \\item{\\code{verbose} Do you want to know how things are going?
+              Default is FALSE}}}
+    \\subsection{Return Value}{Summarized Experiment}
+    \\subsection{Details}{This is a convenience wrapper to the
+        \\code{toSummarizedExperiment} method which provides more granular 
+        control.  Note that for \\code{type}, the options are \\code{trt_cp}
+        (the default) for compound (i.e. drug) treated samples, 
+        \\code{trt_sh} for short hairpin treated samples, and 
+        \\code{trt_oe} for samples treated with over expression constructs.}"
+    
+    type = match.arg(type)
+    where_clause = list(pert_iname = pert, 
+                        pert_type = type)
+    if (gold)
+      where_clause$is_gold = TRUE
+    if (length(cell_line))
+      if(length(cell_line) > 1) {
+        where_clause$cell_id = list(inq = c(cell_line))
+      } else {
+        where_clause$cell_id = cell_line
+      }
+    
+    sl$toSummarizedExperiment(where_clause = where_clause,
+                              controls = controls)
+  }
 )

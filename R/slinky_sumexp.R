@@ -75,7 +75,7 @@ Slinky$methods(toSummarizedExperiment = function(gctx = NULL,
         if (length(where_clause)) {
             if (verbose)
                 message("Querying and loading expression data...")
-            ids <- .self$clue.instances(where_clause = where_clause)
+            ids <- .self$clueInstances(where_clause = where_clause)
         }
 
         coln <- .self$colnames(gctx)

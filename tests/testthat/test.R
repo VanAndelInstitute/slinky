@@ -24,7 +24,7 @@ test_that("Object can be created", {
 context("Count function")
 test_that("Record count can be retrieved", {
   skip_if_devel()
-  tt <- sl$clue.count("genes", where_clause=list(gene_symbol="TP53"))
+  tt <- sl$clueCount("genes", where_clause=list(gene_symbol="TP53"))
   expect_equal(tt, 1)
 })
 test_that("Records can be fetched", {
@@ -73,16 +73,16 @@ test_that("Instances can be unpacked from signature endpoint", {
 })
 test_that("A list of instance ids can be retrieved", {
   skip_if_devel()
-  tt <- sl$clue.instances(where_clause=list("pert_desc" = "sirolimus",
+  tt <- sl$clueInstances(where_clause=list("pert_desc" = "sirolimus",
                                             "is_gold" = TRUE,
                                             cell_id = 'MCF7'))
   expect_equal(length(tt), 62)
 })
 test_that("Plate ids can be extracted from dataframe", {
   skip_if_devel()
-  tt <- sl$clue("sigs", where_clause=list(pert_desc = "sirolimus"),
+  tt <- sl$clue("sigs", where_clause = list(pert_desc = "sirolimus"),
                 fields = c("is_gold", "distil_id"), unpack_sigs = TRUE)
-  tt <- sl$distil.to.plate(tt)
+  tt <- sl$distilToPlate(tt)
   expect_equal(length(tt), 664)
   expect_equal(tt[1], "ASG001_MCF7_24H_X1")
 })
@@ -91,21 +91,21 @@ test_that("Signatures can be retrieved by id", {
   tt <- sl$clue("sigs", where_clause=list(pert_desc = "sirolimus"),
                 fields = c("is_gold", "distil_id"), unpack_sigs = TRUE)
   tt <- sl$clue("sigs", ids=tt$distil_id)
-  tt <- sl$distil.to.plate(tt)
+  tt <- sl$distilToPlate(tt)
   expect_equal(length(tt), 664)
 })
 
 context("Profiles API")
 test_that("Vehicle control can be retrieved for perturbations", {
   skip_if_devel()
-  tt <- sl$clue.vehicle(c("AML001_CD34_24H_X1_F1B10:A03",
+  tt <- sl$clueVehicle(c("AML001_CD34_24H_X1_F1B10:A03",
                           "ASG001_MCF7_24H_X1_B7_DUO52HI53LO:F13"))
   expect_equal(nrow(tt),  2)
   expect_equal(tt[1,3], "DMSO")
 })
 test_that("Instance ids can be retrieved", {
   skip_if_devel()
-  tt <- sl$clue.instances(where_clause = list(pert_desc = "sirolimus"))
+  tt <- sl$clueInstances(where_clause = list(pert_desc = "sirolimus"))
   expect_equal(length(tt), 664)
 })
 test_that("Profiles can be retrieved by id", {
@@ -125,16 +125,16 @@ test_that("SummarizedExperiment can be created", {
   sl <- Slinky$new(user_key, system.file("extdata",
                                          "demo.gctx",
                                          package = "slinky"))
-  eset <- sl$toSummarizedExperiment(index = list(1:978, 1:10),
+  sumex <- sl$toSummarizedExperiment(index = list(1:978, 1:10),
                     info_file = system.file("extdata",
                                             "demo_inst_info.txt",
                                             package = "slinky"))
-  expect_equal(eset$inst_id[1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
-  expect_true(all.equal(SummarizedExperiment::assays(eset)[[1]][5,10],  
+  expect_equal(sumex$inst_id[1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
+  expect_true(all.equal(SummarizedExperiment::assays(sumex)[[1]][5,10],  
                         12, 
                         tol = 0.00001))
-  expect_equal(as.numeric(nrow(eset)),  978)
-  expect_equal(as.numeric(ncol(eset)),  10)
+  expect_equal(as.numeric(nrow(sumex)),  978)
+  expect_equal(as.numeric(ncol(sumex)),  10)
   sl$close()
 })
 test_that("SummarizedExperiment can be created by where clause", {
@@ -146,10 +146,10 @@ test_that("SummarizedExperiment can be created by where clause", {
                    info = system.file("extdata", "demo_inst_info.txt", 
                                       package = "slinky"))
   where_clause = list("distil_id" = 'CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17')
-  eset <- sl$toSummarizedExperiment(where_clause = where_clause)
-  expect_equal(eset$inst_id[1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
-  expect_equal(as.numeric(nrow(eset)),  978)
-  expect_equal(as.numeric(ncol(eset)),  5)
+  sumex <- sl$toSummarizedExperiment(where_clause = where_clause)
+  expect_equal(sumex$inst_id[1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
+  expect_equal(as.numeric(nrow(sumex)),  978)
+  expect_equal(as.numeric(ncol(sumex)),  5)
   sl$close()
 })
 
@@ -162,11 +162,11 @@ test_that("SummarizedExperiment can be created with controls id'd automatically"
                    info = system.file("extdata", "demo_inst_info.txt", 
                                       package = "slinky"))
   where_clause = list("pert_iname" = "amoxicillin", "cell_id" = "MCF7")
-  eset <- sl$toSummarizedExperiment(where_clause = where_clause, 
+  sumex <- sl$toSummarizedExperiment(where_clause = where_clause, 
                                     controls = TRUE)
-  expect_equal(eset$inst_id[1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
-  expect_equal(as.numeric(nrow(eset)),  978)
-  expect_equal(as.numeric(ncol(eset)),  64)
+  expect_equal(sumex$inst_id[1],  "CPC020_MCF7_24H_X1_F1B4_DUO52HI53LO:P17")
+  expect_equal(as.numeric(nrow(sumex)),  978)
+  expect_equal(as.numeric(ncol(sumex)),  64)
   sl$close()
 })
 
@@ -225,19 +225,19 @@ context("Characteristic direction")
 sl <- Slinky$new(user_key, system.file("extdata",
                                        "demo.gctx",
                                        package = "slinky"))
-eset <- sl$toSummarizedExperiment(index = list(1:978, 1:10),
+sumex <- sl$toSummarizedExperiment(index = list(1:978, 1:10),
                   info_file = system.file("extdata",
                                           "demo_inst_info.txt",
                                           package = "slinky"))
 test_that("Characteristic direction based on SummarizedExperiment", {
   skip_if_devel()
-  tt <- sl$chDir(eset[, 1:4], eset[, 5:10])
+  tt <- sl$chDir(sumex[, 1:4], sumex[, 5:10])
   expect_equivalent(tt[1], 0.004667438, tol = 0.00001)
 })
 test_that("Characteristic direction can be calculated based on two matrices", {
   skip_if_devel()
-  tt <- sl$chDir(SummarizedExperiment::assays(eset)[[1]][, 1:4], 
-                 SummarizedExperiment::assays(eset)[[1]][, 5:10])
+  tt <- sl$chDir(SummarizedExperiment::assays(sumex)[[1]][, 1:4], 
+                 SummarizedExperiment::assays(sumex)[[1]][, 5:10])
   expect_equivalent(tt[1], 0.004667438, tol = 0.00001)
 })
 

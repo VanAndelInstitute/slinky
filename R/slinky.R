@@ -15,11 +15,11 @@
 #'                  system.file('extdata', 'demo.gctx',
 #'                       package='slinky'),
 #'                  system.file('extdata', 'demo_inst_info.txt',
-#'                      package='slinky'))
-#' amox_gold <- sl$clue.instances(where_clause=list('pert_type'='trt_cp',
-#'                  'pert_iname'='amoxicillin',
+#'                      package = 'slinky'))
+#' amox_gold <- sl$clueInstances(where_clause = list('pert_type' = 'trt_cp',
+#'                  'pert_iname' = 'amoxicillin',
 #'                  'cell_id' = 'MCF7',
-#'                  'is_gold'=TRUE), poscon = 'omit')
+#'                  'is_gold' = TRUE), poscon = 'omit')
 #' amox_gold_sumexp <- sl$toSummarizedExperiment(ids = amox_gold)
 #'
 #' @exportClass Slinky

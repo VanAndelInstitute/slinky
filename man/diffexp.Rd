@@ -11,7 +11,7 @@ diffexp(x, treat, control = "auto", method = "cd", split_by_plate = FALSE,
   ...)
 
 \S4method{diffexp}{Slinky}(x, treat, control = "auto", method = "cd",
-  split_by_plate = TRUE, where_clause = list(), gold = TRUE,
+  split_by_plate = FALSE, where_clause = list(), gold = TRUE,
   inferred = TRUE, verbose = FALSE, ...)
 }
 \arguments{

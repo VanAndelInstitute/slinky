@@ -29,13 +29,13 @@ setGeneric("chDir",
 setMethod("chDir", signature(x = "Slinky"),
           function(x, treated, control)
           {
-            if (class(treated) == "SummarizedExperiment") {
+            if (is(treated, "SummarizedExperiment")) {
               treated <- SummarizedExperiment::assays(treated)[[1]]
               if (ncol(treated) < 2) {
                 message("NA's returned: treated group had < 2 samples.")
                 return(rep(NA, length(treated)))
               }
-            } else if (class(treated) == "Slinky") {
+            } else if (is(treated, "Slinky")) {
               treated <-
                 SummarizedExperiment::assays(as(treated, 
                                                 "SummarizedExperiment"))[[1]]
@@ -43,26 +43,26 @@ setMethod("chDir", signature(x = "Slinky"),
                 message("NA's returned: treated group had < 2 samples.")
                 return(rep(NA, length(treated)))
               }
-            } else if (class(treated) != "data.frame" &&
-                       class(treated) != "matrix") {
+            } else if (!is(treated, "data.frame") &&
+                       !is(treated, "matrix")) {
               stop(
                 "chDir function expects objects of type ",
                 "SummarizedExperiment, Slinky, or data.frame as arguments"
               )
             }
             
-            if (class(control) == "SummarizedExperiment") {
+            if (is(control, "SummarizedExperiment")) {
               control <- SummarizedExperiment::assays(control)[[1]]
               if (ncol(control) < 2) {
                 message("NA's returned: control group had < 2 samples.")
                 return(rep(NA, length(control)))
               }
-            } else if (class(control) == "Slinky") {
+            } else if (is(control, "Slinky")) {
               control <-
                 SummarizedExperiment::assays(as(control, 
                                                 "SummarizedExperiment"))[[1]]
-            } else if (class(control) != "data.frame" && 
-                       class(control) != "matrix") {
+            } else if (!is(control, "data.frame") && 
+                       !is(control, "matrix")) {
               stop(
                 "chDir function expects objects of type ",
                 "SummarizedExperiment, Slinky, or data.frame as arguments"

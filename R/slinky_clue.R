@@ -434,7 +434,7 @@ function(x, endpoint = c("sigs",
   endpoint = match.arg(endpoint)
   key <- x@user_key
   base <- x@base
-  if (class(where_clause) == "list") {
+  if (is(where_clause, "list")) {
     query = list(
       where = jsonlite::toJSON(where_clause,
                                auto_unbox = TRUE),

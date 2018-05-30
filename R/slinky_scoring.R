@@ -82,7 +82,7 @@ setMethod("diffexp", signature(x = "Slinky"),
                    treat,
                    control = "auto",
                    method = "cd",
-                   split_by_plate = TRUE,
+                   split_by_plate = FALSE,
                    where_clause = list(),
                    gold = TRUE,
                    inferred = TRUE,
@@ -90,7 +90,7 @@ setMethod("diffexp", signature(x = "Slinky"),
                    ...)
           {
 
-            if (class(treat) == "character") {
+            if (is(treat, "character")) {
 
               where_clause$pert_iname = treat
               
@@ -109,16 +109,16 @@ setMethod("diffexp", signature(x = "Slinky"),
               if (verbose)
                 message(paste0("\nLoaded ", ncol(treat), " treated samples."))
               
-            } else if (class(treat) == "Slinky") {
+            } else if (is(treat, "Slinky")) {
               treat <- as(treat, "SummarizedExperiment")
-            } else if (class(treat) != "SummarizedExperiment") {
+            } else if (!is(treat, "SummarizedExperiment")) {
               stop(
                 "diffexp expects either the pert_iname of the perturbagen, ",
                 "a Slinky object, or a SummarizedExperiment for the ",
                 "'treat' dataset"
               )
             }
-            if (class(control) == "character") {
+            if (is(control, "character")) {
               if (control == "auto") {
                 if (verbose)
                   message("\nLocating and loading control samples.")
@@ -148,9 +148,9 @@ setMethod("diffexp", signature(x = "Slinky"),
                 if (verbose)
                   message(paste0("Loaded ", ncol(control), " control samples."))
               }
-            } else if (class(treat) == "Slinky") {
-              treat <- as(treat, "SummarizedExperiment")
-            } else if (class(control) != "SummarizedExperiment") {
+            } else if (is(control, "Slinky")) {
+              control <- as(control, "SummarizedExperiment")
+            } else if (!is(control, "SummarizedExperiment")) {
               stop(
                 "diffexp expects either the pert_iname of the perturbagen, ",
                 "a Slinky object, or a SummarizedExperiment for the ",
@@ -242,7 +242,7 @@ setMethod("rzs", signature(x = "Slinky"),
                    verbose = FALSE,
                    ...)
           {
-            if (class(treat) == "character") {
+            if (is(treat, "character")) {
               where_clause$pert_iname = treat
               
               if (gold) {
@@ -259,15 +259,15 @@ setMethod("rzs", signature(x = "Slinky"),
               if (verbose)
                 message(paste0("\nLoaded ", ncol(treat), " treated samples."))
               
-            } else if (class(treat) != "Slinky") {
+            } else if (is(treat,  "Slinky")) {
               treat <- as(treat, "SummarizedExperiment")
-            } else if (class(treat) != "SummarizedExperiment") {
+            } else if (!is(treat, "SummarizedExperiment")) {
               stop(
                 "rzs expects either the pert_iname of the perturbagen ",
                 "or a SummarizedExperiment Set for the 'treat' dataset"
               )
             }
-            if (class(control) == "character") {
+            if (is(control, "character")) {
               if (control == "auto") {
                 if (verbose)
                   message("\nLocating and loading control samples.")
@@ -302,9 +302,9 @@ setMethod("rzs", signature(x = "Slinky"),
                   message(paste0("Loaded ", ncol(control), 
                                  " control samples."))
               }
-            } else if (class(control) != "Slinky") {
-              treat <- as(treat, "SummarizedExperiment")
-            } else if (class(control) != "SummarizedExperiment") {
+            } else if (is(control, "Slinky")) {
+              control <- as(control, "SummarizedExperiment")
+            } else if (!is(control, "SummarizedExperiment")) {
               stop(
                 "rzs expects either 'auto', the pert_iname of the perturbagen or",
                 "a SummarizedExperiment for the 'control' dataset"

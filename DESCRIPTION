@@ -1,8 +1,8 @@
 Package: slinky
 Type: Package
 Title: Putting the fun in LINCS L1000 data analysis
-Version: 0.99.11
-Date: 2018-03-01
+Version: 0.99.12
+Date: 2018-05-30
 Author: Eric J. Kort
 Maintainer: Eric J. Kort  <eric.kort@vai.org>
 Description: Wrappers to query the L1000 metadata available via the clue.io 
@@ -20,24 +20,29 @@ Imports:
     foreach,
     httr,
     methods,
+    readr,
+    rhdf5,
+    jsonlite,
     tidyr
 Collate:
     'slinky.R'
+    'slinky_clue.R'
+    'slinky_sumexp.R'
     'slinky_download.R'
     'slinky_info.R'
     'slinky_gctx.R'
-    'slinky_clue.R'
-    'slinky_sumexp.R'
+    'slinky_scoring.R'
     'slinky_chdir.R'
     'slinky_ks.R'
-    'slinky_scoring.R'
 Suggests:
     GeoDE,
+    doParallel,
     testthat,
     knitr,
     rmarkdown,
     ggplot2,
     Rtsne,
+    Biobase,
     BiocStyle
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1

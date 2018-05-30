@@ -4,385 +4,51 @@
 \name{Slinky-class}
 \alias{Slinky-class}
 \alias{Slinky}
-\title{A Reference Class to encapsulate LINCS methods}
-\description{
-A Reference Class to encapsulate LINCS methods
+\title{An S4 class for working with LINCS data}
+\usage{
+Slinky(user_key = character(), gctx = character(), info = character())
 }
-\section{Fields}{
+\arguments{
+\item{user_key}{clue.io API key}
+
+\item{gctx}{gctx containing expression data (optional)}
+
+\item{info}{info file containing metadata (optional)}
+}
+\value{
+A Slinky object.
+}
+\description{
+The \code{Slinky} class encapsulates details about location of the LINCS L1000 
+data files as well as access credentials for the clue.io API (if desired).
+It provides methods for querying and loading data from these resources.
+The helper function \code{\link{Slinky}} is a simpler way to construct 
+an object of this class
+
+The \code{Slinky()} constructor returns a slinky object with defaults 
+set where required. To access the clue.io API, you must either provide 
+your key as the value for the arguemtn \code{user_key}, or set the 
+CLUE_API_KEY environment variable prior to starting your R session.  
+If no clue.io API access is required, simply specify \code{user_key = ""}. 
+If \code{info} is not specified, it will be assumed that the file 
+GSE92742_Broad_LINCS_inst_info.txt.gz is present in the working directory.
+}
+\section{Slots}{
 
 \describe{
-\item{\code{.user_key}}{private field populated at instantiation}
+\item{\code{.index}}{internal slot for mapping object to file data}
 
-\item{\code{.base}}{private field populated at instantiation}
+\item{\code{base}}{Base url for clue.io API.}
 
-\item{\code{.gctx}}{private field optionally populated at instantiation specifying
-path to gctx file}
-}}
+\item{\code{gctx}}{gctx containing expression data (optional)}
 
-\section{Methods}{
+\item{\code{info}}{info file containing metadata (optional)}
 
-\describe{
-\item{\code{chDir(treated, control)}}{Convenience wrapper to calculate Characteristic Direction Unity Vector
-based on two datasets.
-\subsection{Parameters}{
-\itemize{
-\item{\code{treated} Expression data for treated samples, as
-    `data.frame`, `matrix`, or `SummarizedExperiment`}
-\item{\code{control} Expression data for control samples, as
-    `data.frame`, `matrix`, or `SummarizedExperiment`}
-\item{\code{plot} Do you want the projection and Top genes plots
-    displayed? Default is FALSE.}
-}}
-\subsection{Return Value}{Column matrix of characteristic direction
-    scores for each gene.}
-\subsection{Details}{There are a few steps involved in getting the
-    data formatted for the `chdirAnalysis` function. This function
-    takes care of that for you.  Also, the chdirSig function is not
-    exported from the package GeoDE so we copy it here to be able to
-    circumvent plotting (which may not be desired for the high
-    throughput applications targeted by this package).}}
+\item{\code{metadata}}{internal slot for storing metadata from info file, mapped 
+to gctx file and current index.}
 
-\item{\code{close()}}{Close any open HDF5 (gctx) file connections.
-\subsection{Return Value}{None.  Called for side effect of closing
-    connections.}}
-
-\item{\code{clue(endpoint = c("sigs", "cells", "genes", "perts", "plates", "profiles",
-  "rep_drugs", "pcls"), fields = "", where_clause = NULL, ids = NULL,
-  limit = 0, count = FALSE, unpack_sigs = TRUE, cl = NULL,
-  verbose = FALSE)}}{Wrapper for clue.io REST calls
-\subsection{Parameters}{
-\itemize{
-    \item{\code{endpoint} The endpoint to query.  Default is 'sigs'.}
-    \item{\code{fields} Optional vector of fields to return.}
-    \item{\code{where_clause} Optional where_clause clause.  Must be
-        named list (e.g. list(field='value')}
-    \item{\code{ids} Optional vector of ids to fetch for sigs or profiles
-        endpoints.  Should not be used together with where_clause or
-        count.}
-    \item{\code{unpack_sigs} The sigs endpoint returns multiple
-        distil_ids per row.  Should we unpack these to one per row?}
-    \item{\code{cl} Optional cluster object to parallelize this
-        operation. If verbose is TRUE, use this pattern in order for
-        progress bar to update:
-        \code{cl <- parallel::makeCluster(4, outfile="")}}
-    \item{\code{verbose} Do you want to know how things are going?
-        Default is false.}
-}}
-\subsection{Return Value}{Data returned by Slinky.api as a data.frame}}
-
-\item{\code{clueCount(endpoint = c("sigs", "cells", "genes", "perts", "plates",
-  "profiles", "rep_drugs", "pcls"), where_clause = "")}}{Wrapper for Slinky.io REST calls to retrieve record counts
-\subsection{Parameters}{
-\itemize{
-    \item{\code{endpoint} The endpoint to query, default is 'sigs'.}
-    \item{\code{where_clause} Optional where_clause clause.  Must be
-    named list (e.g. list(field='value')}
-}}
-\subsection{Return Value}{Count of records satisfying query}}
-
-\item{\code{clueInstances(where_clause = NULL, verbose = FALSE, poscon = c("keep",
-  "omit"))}}{Convenience wrapper to query function to retrieve instance ids meeting
-specified criteria.
-\subsection{Parameters}{
-\itemize{
-    \item{\code{where_clause} Filter terms, as a list of terms, e.g.
-        \code{list(pert_type='trt_cp', 'is_gold'=TRUE)}.  Terms will be
-        joined by AND logic.}
-    \item{\code{verbose} Do you want to know how things are going?
-        Default is false.}
-    \item{\code{poscon} Instances of type \code{trt_poscon} are recoded
-        as \code{trt_cp} in clue.io's \code{sigs} endpoint.
-        This can lead to unexpected results downstream.  To drop these
-        instances, specify \code{poscon='omit'}}
-}}
-\subsection{Return Value}{Vector of ids matching criteria.}
-\subsection{Details}{This is a convenience wrapper to the signature API
-    which queries clue.io and unwraps response. }}
-
-\item{\code{clueVehicle(ids, verbose = FALSE)}}{Fetch the vehicle control applicable to given ids (distil_id).  Expects
-    that perturbagen is of type trt_cp.
-\subsection{Parameters}{
-\itemize{
-    \item{\code{ids} The distil_id(s) to lookup.}
-    \item{\code{verbose} Do you want to know how things are going?
-        Default is FALSE.}
-}}
-\subsection{Return Value}{The name of the vehicle control for the queried
-    perturbagen(s).}
-\subsection{Details}{This is a convenience wrapper to the profiles API
-    which queries clue.io and unwraps response. }}
-
-\item{\code{colnames(file = NULL, index = NULL)}}{Retrieve column names from LINCS gctx datafile
-\subsection{Parameters}{
-\itemize{
-    \item{\code{file} Path to gctx file.  May be omitted if specified when
-        Slinky object is created.}
-    \item{\code{index} Optional list providing which colnames to return.}
-}}
-\subsection{Return Value}{Names of columns from gctx file}
-\subsection{Details}{The gctx file is an HDF5 formatted file with several
-    sections (groups) containing the column and row level metadata as well
-    as the expression data itself.  If `index` is provided, it should be a
-    list of extent one providing a vector of column indices for which to
-    return ids.  For example, index=list(c(1,2,3,10)).}}
-
-\item{\code{controls(ids, verbose = FALSE, cl = NULL)}}{Fetch the same plate control samples applicable for given ids (distil_id).
-    Expects that the specified ids have pert_type of trt_sh or trt_cp.
-\subsection{Parameters}{
-\itemize{
-    \item{\code{ids} The distil_id(s) to lookup.}
-    \item{\code{cl} Optional cluster object to parallelize this
-        operation. If verbose is TRUE, use this pattern in order for
-        progress bar to update:
-        \code{cl <- parallel::makeCluster(4, outfile="")}}
-    \item{\code{verbose} Do you want to know how things are going?
-        Default is FALSE.}
-}}
-\subsection{Return Value}{The name of the vehicle control for the queried
-    perturbagen(s).}
-\subsection{Details}{For a given set of distil_ids, this function finds
-    the distil_ids for the corresponding control samples based on the the
-    pert_type and (for trt_cp) the specified vehicle.  The returned
-    dataframe can be used, among other things, to create a control dataset
-    for differential expression or other analysis.  See also de.by.plate.}}
-
-\item{\code{diffexp(treat, control = "auto", method = "cd", split_by_plate = TRUE,
-  where_clause = list(), gold = TRUE, inferred = FALSE, verbose = FALSE,
-  ...)}}{Calculate differential expression scores, subsetting by plate.
-\subsection{Parameters}{
-\itemize{
-    \item{\code{treat} A SummarizedExperiment containing the treated 
-        samples, or the pert_desc of desired perturbagen. See details. }
-    \item{\code{conrol} A SummarizedExperiment containing the control 
-        samples, or the pert_desc of desired controls. Default is 'auto'. 
-        See details.}
-    \item{\code{method} Scoring method to use.  Only \code{cd} and
-        \code{ks} are presently supported.}
-    \item{\code{split_by_plate} Should the analysis be split by plate?
-        This is one way to control for batch effects, but requires at 
-        least two treated sample and two control samples on each plate in 
-        the dataset.}
-    \item{\code{where_clause} If treat is a pert_desc, further query
-        terms may be specified here (e.g. \code{pert_type="trt_sh"}).}
-    \item{\code{gold} Restrict analysis to gold instances as defined by
-        LINCS. Ignored if treat and control are SummarizedExperiments.}
-    \item{\code{inferred} Should the inferred (non-landmark) genes be
-        included in the analysis? Default is FALSE.}
-    \item{\code{verbos} Do you want to know how things are going?
-        Default is FALSE.}
-    \item{\code{...} Additional arguments for \code{method}.}
-}}
-\subsection{Return Value}{Vectors of scores, one per subset (plate).}
-\subsection{Details}{This function looks for \code{rna_plate} in
-    \code{colData(treat)} and \code{colData(control)} to slice the data
-    into subsets, and then performs differential expression analysis on
-    the subsets. If a perturbation
-    identifier is provided instead of an SummarizedExperiment, the 
-    necessary SummarizedExperiment is constructed by calling this 
-    package's \code{toSummarizedExperiment} function (which requires 
-    that you have 
-    initialized this class with appropriate clue.io key and location of 
-    gctx file). Note that the control dataset can be automatically 
-    generated by the default option of \code{control="auto"}. In this 
-    case, appropriate same-plate controls are identified for the samples 
-    in the treat dataset and loaded. For more complex queries, you can 
-    create the requisite SummarizedExperiments yourself with 
-    \code{toSummarizedExperiment}, or 
-    create a SummarizedExperiment by any other methods, ensuring that
-    \code{treat} and \code{control} contain the
-    \code{rna_plate} metadata variable for subsetting. 
-    Note that this function assumes that each plate represented in 
-    \code{treat} is also represented in \code{control}}}
-
-\item{\code{distilToPlate(x)}}{Extract the plate id from distil_id
-\subsection{Parameters}{
-\itemize{
-    \item{\code{x} A vector of distil_ids, a dataframe with
-        distil_id element, or an SummarizedExperiment whose colData
-        contains distil_id.}
-}}
-\subsection{Return Value}{Slinky object}}
-
-\item{\code{download(type = c("expression", "info", "readme"), level = 3, phase = 1,
-  prompt = FALSE, verbose = FALSE)}}{Convenience function to retrieve LINCS L1000 data and metadata files.
-\subsection{Parameters}{
-\itemize{
-    \item{\code{type} Type of file to retrieve: expression, info
-        (instance level), or readme file. }
-    \item{\code{level} Level of data desired (if type is expression): 2,
-        3 (default), 4, or 5.}
-    \item{\code{phase} What phase of data is desired, 1 of 2?  Currently
-        only 1 is supported.}
-    \item{\code{prompt} Warn before downloading huge files?  Default is
-        FALSE.}
-    \item{\code{verbose} Do you want to know how things are going?
-        Default is FALSE.}
-}}
-\subsection{Return Value}{None}
-\subsection{Details}{Note that most of these files are very large and may
-    take many minutes to several hours to download. A fast and reliable
-    connection is highly recommended.}}
-
-\item{\code{initialize(key = NULL, gctx = NULL, info = NULL)}}{Create a Slinky object
-\subsection{Parameters}{
-\itemize{
-\item{\code{key} Your clue.io user key.  If not specified, CLUE_API_KEY
-environment variable must be set.}
-\item{\code{gctx} Optional path to gctx file containing data you want to
-work with.  Can be specified later if desired.}
-\item{\code{info} Optional path to info file containing metadata
-describing the instances in the gctz file.}
-}}
-\subsection{Return Value}{Slinky object}}
-
-\item{\code{ks(data)}}{Calculate KS based enrichment score
-\subsection{Parameters}{
-\itemize{
-\item{\code{ks} An N x M matrix of gene expression values (typically
-         robust zscores) for N genes and M samples. Rownames should
-         be the gene ids.}
-}}
-\subsection{Return Value}{Vector of KS scores for each gene.}
-\subsection{Details}{The the original CMAP paper by Lamb et al. used
-    a KS random walk based statistic for calculating enrichment.  Here
-    we use the same metric to identify differentially expressed genes.
-    The question arises how to summarize accross replicates.
-    We use a "rank of ranks" approach.  With this
-    method, each sample is ranked, and then the entire matrix is
-    ranked to create a single vector.  The KS statistic is then
-    calculated for each gene based on the position of their replicate
-    values in the vectorized matrix.  In this way, genes that
-    consistently have high ranks within each sample will have a higher
-    KS score than those that are inconsistently ranked.}}
-
-\item{\code{load(pert, cell_line = NULL, type = c("trt_cp", "trt_sh", "trt_oe"),
-  gold = TRUE, controls = TRUE, verbose = FALSE)}}{High level function to load samples based on specified perturbation.
-\subsection{Parameters}{
-\itemize{
-  \item{\code{pert} Name of the desired perturbagen.}
-  \item{\code{pert} Optional vector of cell lines to restrict results 
-                      to.}
-  \item{\code{type} Type of perturbation (one of trt_cp, trt_sh, trt_oe).}
-  \item{\code{gold} Should we restrict to 'gold' instances? Default is 
-                      yes.}
-  \item{\code{controls} Include same-plate controls?  Default is yes.}
-  \item{\code{verbose} Do you want to know how things are going?
-          Default is FALSE}}}
-\subsection{Return Value}{Summarized Experiment}
-\subsection{Details}{This is a convenience wrapper to the
-    \code{toSummarizedExperiment} method which provides more granular 
-    control.  Note that for \code{type}, the options are \code{trt_cp}
-    (the default) for compound (i.e. drug) treated samples, 
-    \code{trt_sh} for short hairpin treated samples, and 
-    \code{trt_oe} for samples treated with over expression constructs.}}
-
-\item{\code{loadInfo(file = NULL, verbose = FALSE, reload = FALSE)}}{Load the info file into memory if not already loaded.
-\subsection{Parameters}{
-\itemize{
-    \item{\code{file} Optional complete path to file to load.  If
-        omitted, default file from GEO will be located, or downloaded
-        if absent.}
-    \item{\code{verbose} Do you want to know how things are going?
-        Default is FALSE.}
-    \item{\code{reload} If metadata is already loaded, should we reload
-        it? Default is FALSE.}}}
-    \subsection{Return Value}{None.  Called for side effect of loading
-        .self$metadata attribute.}
-\subsection{Details}{After complete, metadata from info file will be
-    in .self$metadata.}}
-
-\item{\code{readGCTX(file = NULL, index = NULL)}}{Read portions of data matrix from LINCS gctx datafile
-\subsection{Parameters}{
-\itemize{
-    \item{\code{file} Path to gctx file.  May be omitted if specified
-        when Slinky object is created.}
-    \item{\code{index} list of extent 2 providing which columns and rows
-        to return.  Since the LINCS datasets are relatively massive, the
-        index argument is required to avoid inadvertently trying to slurp
-        the entire dataset into memory.}
-}}
-\subsection{Return Value}{Matrix of expression data with rownames and
-    colnames appropriately set}
-\subsection{Details}{Failure to close connections will result in warning
-    messages at garbage collection. Calling close prior to removing object
-    will close connections and prevent these messages.}}
-
-\item{\code{rownames(file = NULL, index = NULL)}}{Retrieve rown names from LINCS gctx datafile
-\subsection{Parameters}{
-\itemize{
-    \item{\code{file} Path to gctx file.  May be omitted if specified when
-        Slinky object is created.}
-    \item{\code{index} Optional list providing which rownames to return.}
-}}
-\subsection{Return Value}{Names of rows from gctx file}
-\subsection{Details}{The gctx file is an HDF5 formatted file with several
-    sections (groups) containing the column and row level metadata as well
-    as the expression data itself.  If `index` is provided, it should be a
-    list of extent one providing a vector of row indices for which to
-    return ids.  For example, index=list(c(1,2,3,10)).}}
-
-\item{\code{rzs(treat, control = "auto", where_clause = list(), gold = TRUE,
-  inferred = FALSE, verbose = FALSE, ...)}}{Convert each sample in \code{treat} to robust zscore.
-\subsection{Parameters}{
-\itemize{
-    \item{\code{treat} A SummarizedExperiment containing the 
-        treated samples,
-        or the pert_desc of desired perturbagen. See details. }
-    \item{\code{control} An SummarizedExperiment containing the control 
-        samples, or the pert_desc of desired controls. Default is 'auto'. 
-        See details.}
-    \item{\code{where_clause} If treat is a pert_desc, further query
-        terms may be specified here (e.g. \code{pert_type="trt_sh"}).}
-    \item{\code{gold} Restrict analysis to gold instances as defined by
-        LINCS. Ignored if treat and control are SummarizedExperiments.}
-    \item{\code{inferred} Should the inferred (non-landmark) genes be
-        included in the analysis? Default is FALSE.}
-    \item{\code{verbos} Do you want to know how things are going?
-        Default is FALSE.}
-    \item{\code{...} Additional arguments for \code{method}.}
-}}
-\subsection{Return Value}{Matrix of zscore of same dimension as
-    \code{treat} (or the expression matrix resulting from querying
-    for \code{treat} if a pert_desc is specified).}
-\subsection{Details}{This function identifes same-plate controls for
-    each treated sample, then converts each treated sample to robust
-    z-score by subtracting the median control values and dividing by
-    the (scaled) median absolute deviations.}}
-
-\item{\code{toSummarizedExperiment(gctx = NULL, index = NULL, ids = NULL,
-  where_clause = NULL, inferred = FALSE, fields = NULL,
-  controls = FALSE, info_file = NULL, cl = NULL, verbose = FALSE)}}{Convert data from gctx file to SummarizedExperiment, pulling metadata 
-from various sources
-\subsection{Parameters}{
-\itemize{
-    \item{\code{gctx} Path to gctx file.  May be omitted if already set
-        when Slinky object was instantiated.}
-    \item{\code{index} Index of extent 2 giving the row and column
-        indices to pull from the gctx file. Exactly 1 of index, ids, or
-        where_clause should be specified.}
-    \item{\code{ids} distil_ids to include in the Expression Set.
-        Exactly 1 of index, ids, or where_clause should be specified.}
-    \item{\code{where_clause} Query to use to determine which columns to
-        pull from gctx file. Exactly 1 of index, ids, or where_clause
-        should be specified.}
-    \item{\code{inferred} Should the inferred (non-landmark) genes be
-        included in the analysis? Default is FALSE. Ignored if index is
-        specified.}
-    \item{\code{fields} Fields to include in the expression set's
-        phenodata. Default is all available.}
-    \item{\code{controls} Should same-plate controls be identified and
-        included?  Default is FALSE.}
-    \item{\code{info_file} Optional path to
-        GSE92742_Broad_LINCS_inst_info.txt or other identically formatted
-        metadata file that covers the requested instances.  Default is to
-        look in the library's installation folder and current working
-        directory, and then download it if not found.}
-    \item{\code{verbose} Do you want to know how things are going?
-        Default is FALSE}}}
-\subsection{Return Value}{Object of type eSet containing expression and
-        pheno data.}
-\subsection{Details}{You must specify exactly one of index, ids or
-        where_clause to avoid inadvertently slurping in entire gctx file.}}
+\item{\code{user_key}}{clue.io API key (required unless CLUE_API_KEY env variable 
+is set)}
 }}
 
 \examples{
@@ -391,15 +57,15 @@ from various sources
 # package.
 user_key <- httr::content(httr::GET('https://api.clue.io/temp_api_key'),
                           as='parsed')$user_key
-sl <- Slinky$new(user_key,
+sl <- Slinky(user_key,
                  system.file('extdata', 'demo.gctx',
                       package='slinky'),
                  system.file('extdata', 'demo_inst_info.txt',
                      package = 'slinky'))
-amox_gold <- sl$clueInstances(where_clause = list('pert_type' = 'trt_cp',
+amox_gold <- clueInstances(sl, where_clause = list('pert_type' = 'trt_cp',
                  'pert_iname' = 'amoxicillin',
                  'cell_id' = 'MCF7',
                  'is_gold' = TRUE), poscon = 'omit')
-amox_gold_sumexp <- sl$toSummarizedExperiment(ids = amox_gold)
+amox_gold_sumexp <- loadL1K(sl, ids = amox_gold)
 
 }

@@ -47,7 +47,7 @@ The goal of the slinky package is to relieve the user of details of file
 access and web calls and provide a simplified interface to these various 
 resources.
 
-For example, consider the high level method function `load`.  If 
+For example, consider the high level method function `loadL1K`.  If 
 provided a single argument (the name of a perturbagen of interest, for 
 example "amoxicillin"), the function does the following:
 
@@ -62,10 +62,9 @@ not all the identified samples are available in the local GCTX file)
 * Assembles the expression data and metadata into a SummarizedExperiment 
 object and returns it.
 
-These steps can be adjusted with additional optional arguments to 
-`load`.  For users more familiear with the underlying data resources, 
-much more granular control can be achieved through calls to the lower level 
-functions including `toSummarizedExperiment`, `clue`, and 
+For users more familiear with the underlying data resources, 
+much more granular control can be achieved through optional arguments to 
+`loadL1K` or to lower level functions including `clue`, and 
 `readGCTX`.  Examples of these and other functions provided by this 
 package are described in the balance of this vignette.
 
@@ -115,8 +114,8 @@ Again, this will take a while and may fail if your connection is not rock
 solid.
 
 ```{r, echo=TRUE, message=F, warning=F, eval=FALSE}
-sl <- Slinky$new(key="ignore")
-sl$download(type = "expression", level="3")
+sl <- new("Slinky")
+download(sl, type = "expression", level="3")
 ```
 
 You will likely also want the metadata describing the instances in that file. 
@@ -128,11 +127,10 @@ working directory.  The `slinky` package also checks in the current working
 directory for the file before downloading it again.)
 
 ```{r, echo=TRUE, message=F, warning=F, eval=FALSE}
-sl$download(type = "info")
+download(sl, type = "info")
 ```
 
-Details on the LINCS data files are available here:
-https://docs.google.com/document/d/1q2gciWRhVCAAnlvF2iRLuJ7whrGP6QjpsCMq1yWz7dU
+Details on the LINCS data files [are available here](https://docs.google.com/document/d/1q2gciWRhVCAAnlvF2iRLuJ7whrGP6QjpsCMq1yWz7dU).
 
 ## API Key
 
@@ -151,7 +149,8 @@ library(slinky)
 #update following lines with your details:
 key <- "YOUR_API_KEY"
 gctx <- "/path/to/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"
-sl <- Slinky$new(key, gctx)
+info <- "/path/to/GSE92742_Broad_LINCS_inst_info.txt.gz"
+sl <- Slinky(key, gctx, info)
 
 ```
 
@@ -166,11 +165,11 @@ under 4MB as required by the BioConductor project.
 library(slinky)
 user_key <- httr::content(httr::GET("https://api.clue.io/temp_api_key"),
                           as = "parsed")$user_key
-sl <- Slinky$new(user_key, 
+
+sl <- Slinky(user_key, 
                 system.file("extdata", "demo.gctx", package = "slinky"),
                 system.file("extdata", "demo_inst_info.txt",
                                 package = "slinky"))
-
 ```
 
 
@@ -188,28 +187,32 @@ the transcriptome.)
 
 ## From the info file
 
-The `loadInfo` method will find the info file (and download it if it cannot be
-located) and then load it into the `metadata` slot of your Slinky object.
+The info file specified at object instantiation is loaded when the object 
+is created and its data is made available through the `metadata` accessor 
+slot. We can use this data to identify which columns of L1000 expression 
+data we wish to load.  Note that for performance, it is much faster to subset 
+the slinky object rather than subset the data.  The latter will load the 
+entire dataset which may be very large.  An example is given below
 
 ```{r, echo=TRUE, message=F, warning=F, eval=TRUE}
-sl$loadInfo()
-col.ix <- which(sl$metadata$pert_iname == "amoxicillin" & 
-                sl$metadata$cell_id == "MCF7")
-data <- sl$readGCTX(index = list(NULL, col.ix))
-```
+col.ix <- which(metadata(sl)$pert_iname == "amoxicillin" & 
+                metadata(sl)$cell_id == "MCF7")
 
-Note that the `index` argument to the `readGCTX` expects a list (of row indices
-followed by column indices), as this is passed directly to  `rhdf5::h5read`.
+data <- readGCTX(sl[,col.ix])
+
+## This would be slower:
+#data <- readGCTX(sl)[,col.ix]
+
+```
 
 Note that loading contiguous data out of the gctx file is much faster than data
 spread throughout the file.  For example, loading 1000 consecutive instances
 (over the network) takes 3.4 seconds in our environment, while loading 1000
-random instances takes almost 10 times that long.  Unfortunately, the order of
-the instances in the gctx file is different than the order in the info file. 
-However, you can retrieve the complete list of instances from the gctx file (in
-order) using the `colnames` method (e.g. `ids <- sl$colnames()`). Depending on
-your use case, you may be able to leverage this information to optimize
-performance.
+random instances takes almost 10 times that long.  When the info file is 
+loaded, it is reordered to match the order of columns in the gctx file.  
+(Interestingly, the info file provided by GEO is not in the same order as the 
+gctx file). Depending on your use case, you may be able to optimize loading 
+by accessing more nearly contiguous data slices as needed. 
 
 ## By querying the API
 
@@ -220,18 +223,18 @@ amoxicillin in the A375 cell line, but are also designated as "gold" by the
 LINCS program (by virtue of having low variance across replicates):
 
 ```{r, echo=TRUE, eval=TRUE}
-amox_gold <- sl$clueInstances(where_clause = list("pert_type" = "trt_cp",
+amox_gold <- clueInstances(sl, where_clause = list("pert_type" = "trt_cp",
                                                 "pert_iname" = "amoxicillin",
                                                 "cell_id" = "MCF7",
                                                 "is_gold" = TRUE), 
-                               poscon = "omit")
+                              poscon = "omit")
 
 ```
 
 
 Note the `poscon = "omit"` argument.  There are a small number of instances
 that have a `pert_type` of `trt_poscon` in clue.io's `profiles` endpoint but
-are recoded as `trt_cp` in the `sigs` endpoint.  Since the `is_fold` metadata
+are recoded as `trt_cp` in the `sigs` endpoint.  Since the `is_gold` metadata
 must be obtained from the `sigs` endpoint, this can cause confusion/errors in
 downstream analysis.  Therefore, these samples can be omitted from query
 results.  In fact, this is the default behavior of the `clueInstances` method
@@ -240,8 +243,8 @@ results.  In fact, this is the default behavior of the `clueInstances` method
 You could then load these instances by "brute force" as we did above.
 
 ```{r, echo=TRUE, message=F, warning=F, eval=TRUE}
-ix <- which(sl$colnames() %in% amox_gold)
-amox_gold_data <- sl$readGCTX(index = list(NULL, ix))
+ix <- which(colnames(sl) %in% amox_gold)
+amox_gold_data <- readGCTX(sl[ ,ix])
 ```
 
 But it is usually more useful to keep this data annotated with its
@@ -251,25 +254,19 @@ easily done with the `toSummarizedExperiment` method.
 
 ```{r, echo=TRUE, message=F, warning=F, eval=TRUE}
 
-amox_gold_sumex <- sl$toSummarizedExperiment(index = list( NULL, ix))
+amox_gold_sumex <- as(sl[ ,ix], "SummarizedExperiment")
+
 
 ```
 
-Or you can specify the ids directly.
-
-```{r, echo=TRUE, message=F, warning=T, eval=TRUE}
-
-amox_gold_sumex <- sl$toSummarizedExperiment(ids = amox_gold)
-
-```
 
 In fact, you could have skipped the trouble of looking up the ids in the first
-place and simply passed the `where_clause` to `toSummarizedExperiment` 
+place and simply passed the `where_clause` to `loadL1K` 
 directly.
 
 ```{r, echo=TRUE, message=F, warning=T, eval=TRUE}
 
-amox_gold_sumex <- sl$toSummarizedExperiment(
+amox_gold_sumex <- loadL1K(sl,
                       where_clause = list("pert_type" = "trt_cp",
                         "pert_iname" = "amoxicillin",
                         "cell_id" = "MCF7",
@@ -277,15 +274,61 @@ amox_gold_sumex <- sl$toSummarizedExperiment(
 
 ```
 
-Note that by default, `toSummarizedExperiment` only loads the L1000 genes, 
-so there is no need to specify the row index.  If you desire all the genes, 
-simply specify
-`inferred=TRUE` when calling `toSummarizedExperiment`.  If you want some other 
-subset of genes, you will need to use the `index` method shown previously, and 
-not the ids method. This underscores the fact that `toSummarizedExperiment` 
-expects exactly one of the `ids`, `index`, or `where_clause` arguments.  
-Specifying more than one of those arguments, or none of them, will throw an 
-error.
+Note that by default, `toSummarizedExperiment` loads all the genes in the 
+dataset.  If only the L1000 landmark genes are desired, you can either pass 
+the `inferred = FALSE` argument, or explicitly request just the first 978 rows. 
+Both methosd are shown below.
+
+```{r, echo=TRUE, message=F, warning=T, eval=TRUE}
+amox_gold_sumex <- loadL1K(sl,
+                      where_clause = list("pert_type" = "trt_cp",
+                        "pert_iname" = "amoxicillin",
+                        "cell_id" = "MCF7",
+                        "is_gold" = TRUE),
+                      inferred = FALSE)
+
+# equivalent to
+
+amox_gold_sumex <- loadL1K(sl[1:978, ],
+                      where_clause = list("pert_type" = "trt_cp",
+                        "pert_iname" = "amoxicillin",
+                        "cell_id" = "MCF7",
+                        "is_gold" = TRUE),
+                      inferred = FALSE)
+
+# equivalent to
+
+amox_gold_sumex <- loadL1K(sl[1:978, ],
+                      where_clause = list("pert_type" = "trt_cp",
+                        "pert_iname" = "amoxicillin",
+                        "cell_id" = "MCF7",
+                        "is_gold" = TRUE),
+                      inferred = FALSE)
+
+amox_gold_sumex <- amox_gold_sumex[1:978, ]
+
+```
+
+If you want some other subset of genes, simply subset the `Slinky` object 
+accordingly.  The entrez gene ids of the genes in the object can be retrieved by 
+the `rownames` method (and likewise, the `distil_ids` can be retrieved using
+the `colnames` methodD).
+
+```{r, echo=TRUE, message=F, warning=T, eval=TRUE}
+rownames(sl)[1:5]
+colnames(sl)[1:5]
+
+# note subsetting first will be faster as it avoids loading in the entire 
+# set of names from the gctx file:
+
+rownames(sl[1:5, ])
+colnames(sl[, 1:5])
+
+# sanity check
+all.equal(as.character(colnames(sl)),
+          as.character(metadata(sl)$distil_id))
+
+```
 
 
 Here is a more complex example.  Let us identify those instances treated with
@@ -293,19 +336,21 @@ FDA approved compounds that are part of the "gold" subset of highly consistent
 instances (as defined by LINCS).  Definitively identifying FDA approved drugs
 is a little tricky due to subtle (and not so subtle) differences in
 vocabularies, but we exploit the "repositioning" data available at the
-`rep_drugs` endpoint to achieve our ends. 
+`rep_drugs` endpoint to achieve our ends. Since we want to access the clue 
+API directly, we will use the lower level  `clue` method here rather 
+than `loadL1K`.
 
 
 ```{r, echo=TRUE, message=T, warning=F, eval=TRUE}
 
-fda <- sl$clue("rep_drugs", 
+fda <- clue(sl, "rep_drugs", 
             where_clause = list("status_source" = list(like = "FDA Orange"),
                 "final_status" = "Launched",
                 "animal_only" = "0",
                 "in_cmap" = TRUE),
             verbose = FALSE)
 
-fda_pert <- sl$clueInstances(poscon = "omit",
+fda_pert <- clueInstances(sl, poscon = "omit",
                 where_clause = list("pert_type" = "trt_cp", 
                                     "is_gold" = TRUE,
                                     "pert_iname" = 
@@ -315,22 +360,25 @@ fda_pert <- sl$clueInstances(poscon = "omit",
 
 ```
 
+Note the `inq` syntax used above to provide an array of possible values to
+match.  This is a vernacular of the `loopback` framework on which the clue.io
+service is built. Further details can be obtained from the 
+[loopback website](https://loopback.io/doc/en/lb3/Querying-data.html), or 
+the numerous examples at the [clue.io API](https://clue.io/api).
+
 We do not have access to most of these instances in the demo GCTX file, but 
-with the full GCTX file we could then load this data as follows:
+with the full GCTX file we could then load this data by passing the list 
+of ids as an argument to the `loadL1K` method as follows:
 
 ```{r, eval=FALSE}
-fda_gold_sumex <- sl$toSummarizedExperiment(ids = fda_pert, controls = TRUE)
+fda_gold_sumex <- loadL1K(sl, ids = fda_pert))
 ```
 
-Reading all 32891 instances from the full gctx file from
+Reading all 30320 instances from the full gctx file from
 GEO takes about 5 minutes in our environment (in part because these instances
 are scattered all accross the file).  If you plan on reusing larger slices of
 the data like this, it would be a good idea to save them as `.rds` files for
 rapid loading in the future.
-
-Note also the `inq` syntax used above to provide an array of possible values to
-match.  This is a vernacular of the `loopback` framework on which the clue.io
-service is built.
 
 ## Intelligent vehicles
 
@@ -341,12 +389,12 @@ type `trt_cp` (compound perturbed instances), the vehicle is usually, though
 not always, DMSO.  For instances of type `trt_sh` and `trt_oe`, the control
 would be empty vector.  
 
-The slinky package can query clue.io to identify the vehicles for `trt_cp` type
-instances. 
+The slinky package can query clue.io to identify the appropriate controls 
+for a list of ids. 
 
 ```{r eval=TRUE}
 
-veh <- sl$clueVehicle(amox_gold, verbose=FALSE)
+veh <- clueVehicle(sl, amox_gold, verbose=FALSE)
 
 ```
 
@@ -354,10 +402,9 @@ We could then identify the corresponding samples treated with that vehicle in
 our data set using any of the approaches outlined above.  For example
 
 ```{r eval=FALSE}
-sl$loadInfo()
-ix <- which(sl$metadata$pert_iname %in% veh$pert_vehicle)
-amox_and_control <- sl$toSummarizedExperiment(
-                          ids = c(amox_gold, sl$metadata$inst_id[ix]))
+ix <- which(metadata(sl)$pert_iname %in% veh$pert_vehicle)
+amox_and_control <- loadL1K(sl, 
+                            ids = c(amox_gold, metadata(sl[, ix])$inst_id))
 ```
 
 However, there are 54,707 DMSO treated instances in LINCS.  You may not want
@@ -368,19 +415,19 @@ plate controls for `trt_cp`, `trt_sh`, and `trt_oe` instance types, including a
 mixture of those types.
 
 ```{r eval=TRUE}
-controls <-  sl$controls(ids = amox_gold)
-amox_and_control <- sl$toSummarizedExperiment(ids = c(amox_gold, 
-                                                      controls$distil_id))
+ids.ctrl <- controls(sl, ids = amox_gold)$distil_id
+amox_and_control <- loadL1K(sl, ids = c(amox_gold, 
+                                        ids.ctrl))
 ```
 
 In fact, you can skip the step of identifying the same-plate controls
 altogether and simply specify `controls=TRUE` when calling 
-`toSummarizedExperiment`:
+`loadL1K`:
 
 
 ```{r eval=TRUE}
-amox_and_control <- sl$toSummarizedExperiment(ids = amox_gold, 
-                                              controls = TRUE)
+amox_and_control <- loadL1K(sl, ids = amox_gold, 
+                               controls = TRUE)
 ```
 
 # Gene signatures
@@ -413,10 +460,11 @@ argument to further narrow your query). Then `diffexp` will load the
 corresponding data, and identify and load the corresponding same-plate 
 controls.
 
-```{r eval=TRUE}
-cd_vector <- sl$diffexp(treat = "amoxicillin", 
-                 split_by_plate = FALSE, 
-                 verbose = FALSE)
+```{r eval=TRUE, message = FALSE}
+cd_vector <- diffexp(sl, 
+                    treat = "amoxicillin", 
+                    split_by_plate = FALSE, 
+                    verbose = FALSE)
 head(cd_vector)
 ```
 
@@ -424,8 +472,9 @@ Note that not all the matching samples were found in our small demonstration
 gctx file.  The function ran using the available data, but presents a message 
 that some data was missing.
 
-If `by_plate = FALSE`, the function returns a vector of scores for each gene in
-the dataset representing the magnitude and sign of that gene's component vector
+If `split_by_plate = FALSE`, the function returns a vector of scores for each 
+gene in the dataset representing the magnitude and sign of that gene's 
+component vector
 (i.e. its contribution to the characteristic direction of your dataset). In an 
 (arguably) ideal situation, you would only compare instances to controls from 
 the same plate.  But to perform the characteristic direction analysis (or 
@@ -441,13 +490,13 @@ one treated or one control on a given plate).
 In the next example, we are able to split the analysis into plates because the 
 perturbagen is present in replicates on each plate.
 
-```{r}
-cd_vecs <- sl$diffexp(treat = "E2F3",
+```{r, }
+cd_vecs <- diffexp(sl, treat = "E2F3",
                  where_clause = list("pert_type" = "trt_sh",
                                      "cell_id" = "MCF7"),
                  split_by_plate = TRUE, 
                  verbose = FALSE)
-cd_vecs[1:5,1:5]
+cd_vecs[1:5,1:3]
 ```
 
 Here, `diffexp` returns a matrix of scores, one row per gene and one column per
@@ -471,9 +520,9 @@ rp <- apply(ranks, 1, function(x) { (prod(x/n))})
 If the user has the `org.Hs.eg.db` package installed, then the gene symbols 
 corresponding to the most upregulated genes in this case could be identified.
 
-```{r, eval=FALSE}
-library(org.Hs.eg.db)
-entrez_ids <- names(sort(rp, decreasing=FALSE))[1:50]
+```{r, eval=FALSE, message=FALSE}
+suppressMessages(library(org.Hs.eg.db))
+entrez_ids <- names(sort(rp, decreasing=FALSE))[1:5]
 entrez_ids <- entrez_ids[which(entrez_ids %in% ls(org.Hs.egSYMBOL))]
 as.vector(unlist(mget(entrez_ids, org.Hs.egSYMBOL)))
 ```
@@ -490,10 +539,10 @@ For example, we could explore to what extent batch (plate) effects are driving
 differences between samples. 
 
 ```{r, fig.width=6}
-library(ggplot2)
-library(Rtsne)
+suppressMessages(library(ggplot2))
+suppressMessages(library(Rtsne))
 
-sumex <- sl$toSummarizedExperiment(index = list(seq_len(978), seq_len(131)))
+sumex <- loadL1K(sl[seq_len(978), seq_len(131)])
 
 set.seed(100)
 ts <- Rtsne(t(SummarizedExperiment::assays(sumex)[[1]]), perplexity = 10)

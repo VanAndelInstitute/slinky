@@ -28,11 +28,6 @@ test_that("Robust z-scores can be calculated correctly", {
   zs2 <- rzs(sl, treat = "amoxicillin")
   expect_equal(as.numeric(zs), as.numeric(zs2[,5]))
 })
-test_that("Characteristic direction based on Slinky Objects", {
-  skip_if_devel()
-  tt <- chDir(sl, sl[, seq_len(4)], sl[, seq_len(6) + 4])
-  expect_equivalent(tt[1], 0.001186957, tol = 0.00001)
-})
 test_that("Characteristic direction can be calculated by plate", {
   cd_vecs <- diffexp(sl, treat = "E2F3",
                      where_clause = list("pert_type" = "trt_sh",

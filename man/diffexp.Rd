@@ -75,6 +75,7 @@ Calculate differential expression scores, subsetting by plate.
 \examples{
 # for build/demo only.  You MUST use your own key when using the slinky
 # package.
+\dontrun{
 user_key <- httr::content(httr::GET('https://api.clue.io/temp_api_key'),
                           as='parsed')$user_key
 sl <- Slinky(user_key,
@@ -86,5 +87,5 @@ cd_vector <- diffexp(sl,
                     treat = "amoxicillin", 
                     split_by_plate = FALSE, 
                     verbose = FALSE)
-
+}
 }

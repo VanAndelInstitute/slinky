@@ -342,7 +342,7 @@ API directly, we will use the lower level  `clue` method here rather
 than `loadL1K`.
 
 
-```{r, echo=TRUE, message=T, warning=F, eval=TRUE}
+```{r, echo=TRUE, message=T, warning=F, eval=FALSE}
 
 fda <- clue(sl, "rep_drugs", 
             where_clause = list("status_source" = list(like = "FDA Orange"),

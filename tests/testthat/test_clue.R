@@ -57,13 +57,6 @@ test_that("A list of instance ids can be retrieved", {
 })
 
 context("Profiles API")
-test_that("Vehicle control can be retrieved for perturbations", {
-  skip_if_devel()
-  tt <- clueVehicle(sl, c("AML001_CD34_24H_X1_F1B10:A03",
-                          "ASG001_MCF7_24H_X1_B7_DUO52HI53LO:F13"))
-  expect_equal(nrow(tt),  2)
-  expect_equal(tt[1,3], "DMSO")
-})
 test_that("Correct controls are selected", {
   skip_if_devel()
   # load data directly from datafile
@@ -79,13 +72,5 @@ test_that("Instance ids can be retrieved", {
   skip_if_devel()
   tt <- clueInstances(sl, where_clause = list(pert_desc = "sirolimus"))
   expect_equal(length(tt), 503)
-})
-test_that("Profiles can be retrieved by id", {
-  skip_if_devel()
-  tt <- clue(sl, "profiles", where_clause = list(pert_desc = "sirolimus"),
-                fields = c("pert_dose", "distil_id"))
-  expect_equal(ncol(tt), 2)
-  tt <- clue(sl, "profiles", ids = tt$distil_id)
-  expect_equal(length(tt), 39)
 })
 

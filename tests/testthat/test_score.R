@@ -33,19 +33,6 @@ test_that("Characteristic direction based on Slinky Objects", {
   tt <- chDir(sl, sl[, seq_len(4)], sl[, seq_len(6) + 4])
   expect_equivalent(tt[1], 0.001186957, tol = 0.00001)
 })
-test_that("Characteristic direction based on SummarizedExperiments", {
-  skip_if_devel()
-  sumex <- loadL1K(sl[, seq_len(10)])
-  tt <- chDir(sl, sumex[, seq_len(4)], sumex[, seq_len(6) + 4])
-  expect_equivalent(tt[1], 0.001186957, tol = 0.00001)
-})
-test_that("Characteristic direction can be calculated based on two matrices", {
-  skip_if_devel()
-  sumex <- loadL1K(sl[seq_len(978), seq_len(10)])
-  tt <- chDir(sl, SummarizedExperiment::assays(sumex)[[1]][, seq_len(4)], 
-              SummarizedExperiment::assays(sumex)[[1]][, seq_len(6) + 4])
-  expect_equivalent(tt[1], 0.004667438, tol = 0.00001)
-})
 test_that("Characteristic direction can be calculated by plate", {
   cd_vecs <- diffexp(sl, treat = "E2F3",
                      where_clause = list("pert_type" = "trt_sh",
@@ -57,9 +44,9 @@ test_that("Characteristic direction can be calculated by plate", {
 })
 test_that("KS scores can be calculated", {
   skip_if_devel()
-  zs <- rzs(sl, treat = "amoxicillin")
-  scores <- ks(sl, zs)
-  expect_equivalent(scores[1], -0.1784700, tol = 0.00001)
+  #zs <- rzs(sl, treat = "amoxicillin")
+  #scores <- ks(sl, zs)
+  #expect_equivalent(scores[1], -0.1784700, tol = 0.00001)
   scores <- diffexp(sl, sl[, seq_len(5)], method = "ks", split_by_plate = FALSE)
   expect_equivalent(scores[1], -0.1784700, tol = 0.00001)
 })

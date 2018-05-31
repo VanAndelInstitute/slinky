@@ -1,7 +1,7 @@
 Package: slinky
 Type: Package
 Title: Putting the fun in LINCS L1000 data analysis
-Version: 0.99.14
+Version: 0.99.15
 Date: 2018-05-30
 Author: Eric J. Kort
 Maintainer: Eric J. Kort  <eric.kort@vai.org>
@@ -12,13 +12,15 @@ Description: Wrappers to query the L1000 metadata available via the clue.io
     analysis of these data sets.
 License: MIT + file LICENSE
 Depends:
-    R (>= 3.5.0),
+    R (>= 3.5.0)
 Imports:
     SummarizedExperiment,
     curl,
     dplyr,
     foreach,
     httr,
+    stats,
+    utils,
     methods,
     readr,
     rhdf5,

@@ -104,7 +104,8 @@ note that the datafile is quite large (~40GB). A robust multithreaded download
 client makes this much faster and less prone to failures due to connectivity
 hiccups.  For example, you might try:
 
-```{r, engine = 'bash', eval=FALSE}
+```{r eval=FALSE}
+# bash
 aria2c -x 8 -s 8 https://goo.gl/3TigFI
 gzip -d *.gz
 ```

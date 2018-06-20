@@ -73,6 +73,19 @@ Vectors of scores, one per subset (plate).
 Calculate differential expression scores, subsetting by plate.
 }
 \examples{
+#'
+# for build/demo only.  You MUST use your own key when using the slinky
+# package.
+user_key <- httr::content(httr::GET('https://api.clue.io/temp_api_key'),
+                          as='parsed')$user_key
+sl <- Slinky(user_key,
+                 system.file('extdata', 'demo.gctx',
+                      package='slinky'),
+                 system.file('extdata', 'demo_inst_info.txt',
+                     package = 'slinky'))
+scores <- diffexp(sl, sl[,1:5], sl[,18:22])
+head(scores)
+
 # for build/demo only.  You MUST use your own key when using the slinky
 # package.
 \dontrun{

@@ -176,7 +176,6 @@ setGeneric("colnames")
 #'                  system.file('extdata', 'demo_inst_info.txt',
 #'                      package = 'slinky'))
 #' colnames(sl[,1:5])
-#' rownames(sl[1:5,])
 setMethod("colnames", signature(x = "Slinky"),
           function(x) 
           {
@@ -214,6 +213,17 @@ setGeneric("rownames")
 #' @rdname rownames
 #' @exportMethod rownames
 #' @aliases rownames,Slinky-method
+#' @examples
+#' # for build/demo only.  You MUST use your own key when using the slinky
+#' # package.
+#' user_key <- httr::content(httr::GET('https://api.clue.io/temp_api_key'),
+#'                           as='parsed')$user_key
+#' sl <- Slinky(user_key,
+#'                  system.file('extdata', 'demo.gctx',
+#'                       package='slinky'),
+#'                  system.file('extdata', 'demo_inst_info.txt',
+#'                      package = 'slinky'))
+#' rownames(sl[1:5,])
 setMethod("rownames", signature(x = "Slinky"),
           function(x) 
           {

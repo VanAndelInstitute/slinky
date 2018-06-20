@@ -46,6 +46,20 @@
 #'     \code{treat} is also represented in \code{control}
 #' @name diffexp
 #' @rdname diffexp
+#' @examples 
+#' #'
+#' # for build/demo only.  You MUST use your own key when using the slinky
+#' # package.
+#' user_key <- httr::content(httr::GET('https://api.clue.io/temp_api_key'),
+#'                           as='parsed')$user_key
+#' sl <- Slinky(user_key,
+#'                  system.file('extdata', 'demo.gctx',
+#'                       package='slinky'),
+#'                  system.file('extdata', 'demo_inst_info.txt',
+#'                      package = 'slinky'))
+#' scores <- diffexp(sl, sl[,1:5], sl[,18:22])
+#' head(scores)
+#'
 setGeneric("diffexp",
            function(x,
                     treat,
@@ -233,6 +247,19 @@ setGeneric("rzs",
 #' @rdname rzs
 #' @exportMethod rzs
 #' @aliases rzs,Slinky-method
+#' @examples 
+#' #'
+#' # for build/demo only.  You MUST use your own key when using the slinky
+#' # package.
+#' user_key <- httr::content(httr::GET('https://api.clue.io/temp_api_key'),
+#'                           as='parsed')$user_key
+#' sl <- Slinky(user_key,
+#'                  system.file('extdata', 'demo.gctx',
+#'                       package='slinky'),
+#'                  system.file('extdata', 'demo_inst_info.txt',
+#'                      package = 'slinky'))
+#' scores <- rzs(sl, "amoxicillin")
+#' head(scores)
 setMethod("rzs", signature(x = "Slinky"),
           function(x,
                    treat,

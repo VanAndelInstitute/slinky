@@ -49,3 +49,17 @@ Matrix of zscore of same dimension as
 \description{
 Convert each sample in \code{treat} to robust zscore.
 }
+\examples{
+#'
+# for build/demo only.  You MUST use your own key when using the slinky
+# package.
+user_key <- httr::content(httr::GET('https://api.clue.io/temp_api_key'),
+                          as='parsed')$user_key
+sl <- Slinky(user_key,
+                 system.file('extdata', 'demo.gctx',
+                      package='slinky'),
+                 system.file('extdata', 'demo_inst_info.txt',
+                     package = 'slinky'))
+scores <- rzs(sl, "amoxicillin")
+head(scores)
+}

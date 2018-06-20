@@ -45,5 +45,4 @@ sl <- Slinky(user_key,
                  system.file('extdata', 'demo_inst_info.txt',
                      package = 'slinky'))
 colnames(sl[,1:5])
-rownames(sl[1:5,])
 }

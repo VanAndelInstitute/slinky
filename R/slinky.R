@@ -90,6 +90,7 @@ Slinky = function(user_key = character(),
   }
   
   meta <- rhdf5::h5dump(gctx, load = FALSE)
+  rhdf5::h5closeAll()
   ncol <- meta$`0`$META$COL$id$dim
   nrow <- meta$`0`$META$ROW$id$dim
   index <- list(seq_len(nrow), seq_len(ncol))
@@ -185,9 +186,11 @@ setMethod("colnames", signature(x = "Slinky"),
                    "Slinky object.")
             }
             
-            rhdf5::h5read(x@gctx, 
+            n <- rhdf5::h5read(x@gctx, 
                           name = "0/META/COL/id", 
                           index = list(x@.index[[2]]))
+            closeAll(x)
+            n
           })
 
 #' rownames
@@ -228,9 +231,11 @@ setMethod("rownames", signature(x = "Slinky"),
           function(x) 
           {
             closeAll(x)  # cleanup in case there was a bad exit previously
-            rhdf5::h5read(x@gctx, 
+            n <- rhdf5::h5read(x@gctx, 
                           name = "0/META/ROW/id", 
                           index = list(x@.index[[1]]))
+            closeAll(x)
+            n
           })
 
 

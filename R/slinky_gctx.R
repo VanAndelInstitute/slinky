@@ -45,8 +45,10 @@ setMethod("readGCTX", signature(x = "Slinky"),
             
             data <- rhdf5::h5read(x@gctx, name = "0/DATA/0/matrix", 
                                   index = x@.index)
+            closeAll(x)
             colnames(data) <- as.vector(colnames(x))
             rownames(data) <- as.vector(rownames(x))
+            closeAll(x) # release lock
             data
           })
 

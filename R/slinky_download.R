@@ -8,7 +8,9 @@
 #' @param level  Level of data desired (if type is expression): 2,
 #'    3 (default), 4, or 5.
 #' @param phase  What phase of data is desired, 1 of 2?  Currently
-#'    only 1 is supported.
+#'    only 1 is supported. Phase 2 files may be used with this package,
+#'    but must be downloaded manually.  Phase 2 support planned for next 
+#'    update.
 #' @param prompt  Warn before downloading huge files?  Default is
 #'    FALSE.
 #' @param verbose  Do you want to know how things are going?

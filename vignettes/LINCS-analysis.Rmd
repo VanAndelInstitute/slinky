@@ -98,9 +98,10 @@ floating point to integer to keep the package size under 4MB as required by
 the Bioconductor project.
 
 To move on and conduct your own analysis, you will need access to
-the LINCS Phase I Level 3 data file.  This file may already be available from
+a LINCS L1000 data file, such as the Phase I Level 3 data file.  
+This file may already be available from
 your local bioinformatics core.  If you need or want to download it yourself,
-note that the datafile is quite large (~40GB). A robust multithreaded download
+note that these datafiles are quite large (up to 40GB). A robust multithreaded download
 client makes this much faster and less prone to failures due to connectivity
 hiccups.  For example, you might try:
 
@@ -119,13 +120,17 @@ sl <- new("Slinky")
 download(sl, type = "expression", level="3")
 ```
 
-You will likely also want the metadata describing the instances in that file. 
-You could download it yourself, but note that the slinky package will fetch it
-automatically if and when it needs it, and even try to place it in the package
+You will also need the metadata describing the instances in that file. 
+You could download it yourself, but note that the slinky package will automatically 
+fetch the default phase I info file automatically if and when it needs it, 
+and even try to place it in the package
 installation directory so it is there the next time. (If it cannot be moved to
 that directory due to permission issues, it will just be left in your current
 working directory.  The `slinky` package also checks in the current working
 directory for the file before downloading it again.)
+If using phase 2 data, you must download the corresponding 
+INFO file yourself.  Automated support for the phase 2 data is planned for our 
+next update. 
 
 ```{r, echo=TRUE, message=F, warning=F, eval=FALSE}
 download(sl, type = "info")
@@ -217,7 +222,8 @@ by accessing more nearly contiguous data slices as needed.
 
 ## By querying the API
 
-While not quite as fast, querying the clue.io API is simpler, and also allows
+While not quite as fast, querying the clue.io API is simpler, ensures you have 
+the most uptodate metadata, and also allows
 you to query on metadata not present in the info file provided via GEO.  For
 example, we could identify all the instances that are not only perturbed by
 amoxicillin in the A375 cell line, but are also designated as "gold" by the
@@ -572,6 +578,27 @@ ggplot(tsne_plot) +
 
 This underscores the importance of constructing your analysis of this data set
 in a way that controls for batch effects.
+
+# Multiple datasets
+
+Note that presently, the Slinky object does not support loading multiple 
+dataset (e.g. the phase 2 and phase 1 data together).  However, you can 
+create a separate Slinky object for each dataset, extract data of interest 
+into \code{summarizedExperiment} objects with the \code{loadL1K} method and 
+then simply merge them with cbind.  Note that you will need to first verify 
+that the two objects contain the same genes.  For example:
+
+```{r, eval=FALSE}
+sl1 <- Slinky(key, gctx1, info1)
+sl2 <- Slinky(key, gctx2, info2)
+ix <- which(match(rownames(sl1), rownames(sl2)))
+ix.na <- which(is.na(ix))
+sl1 <- sl1[-ix.na, ]
+ix <- ix[-ix.na]
+sl2 <- sl2[ix,]
+sl <- cbind(sl1, sl2)
+
+```
 
 # Future directions
 

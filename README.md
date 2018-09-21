@@ -23,7 +23,7 @@ The examples in the package vignette can be completed with the demonstration `gc
 and `info` files that are installed along with the package.
 
 To move on and conduct your own analysis, you will need access to
-the LINCS Phase I Level 3 data file.  This file may already be available from your local bioinformatics core.  If you need or want to download it yourself, note that the datafile is quite large (~40GB). A robust multithreaded download client makes this much faster and less prone to failures due to connectivity hiccups.  For example, you might try:
+a LINCS data file, available from GEO (e.g. GSE92742).  These files may already be available from your local bioinformatics core.  If you need or want to download it yourself, note that some of these datafiles are quite large (~40GB). A robust multithreaded download client makes this much faster and less prone to failures due to connectivity hiccups.  For example, you might try:
 
 ```{r, engine = 'bash', eval=FALSE}
 aria2c -x 8 -s 8 https://goo.gl/3TigFI
@@ -37,12 +37,11 @@ sl <- Slinky$new(key="ignore")
 sl$download(type = "expression", level="3")
 ```
 
-You will likely also want the metadata describing the instances in that file.  You could download it yourself, but note that the slinky package will fetch it automatically if and when it needs it, and even try to place it in the package installation directory so it is there the next time. (If it cannot be moved to that directory due to permission issues, it will just be left in your current working directory.  The `slinky` package also checks in the current working directory for the file before downloading it again.)
+You will also need the metadata describing the instances in that file.  You could download it yourself, but note that the slinky package will fetch it automatically if and when it needs it, and even try to place it in the package installation directory so it is there the next time. (If it cannot be moved to that directory due to permission issues, it will just be left in your current working directory.  The `slinky` package also checks in the current working directory for the file before downloading it again.)
 
 ```{r, echo=TRUE, message=F, warning=F, eval=FALSE}
 sl$download(type = "info")
 ```
-
 
 Details on the LINCS data files are available here: https://docs.google.com/document/d/1q2gciWRhVCAAnlvF2iRLuJ7whrGP6QjpsCMq1yWz7dU
 
@@ -57,7 +56,8 @@ library(slinky)
 #update following lines with your details:
 key <- "YOUR_API_KEY"
 gctx <- "/path/to/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"
-sl <- Slinky$new(key, gctx)
+info <- "/path/to/GSE92742_Broad_LINCS_gene_info.txt.gz"
+sl <- Slinky$new(key, gctx, info)
 
 ```
 
@@ -69,7 +69,8 @@ library(slinky)
 #update following lines with your details:
 key <- readLines("/path/to/YOUR_API_KEY")
 gctx <- "/path/to/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"
-sl <- Slinky$new(key, gctx)
+info <- "/path/to/GSE92742_Broad_LINCS_gene_info.txt.gz"
+sl <- Slinky(key, gctx, info)
 
 ```
 

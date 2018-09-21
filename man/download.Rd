@@ -23,7 +23,9 @@ download(x, type = c("expression", "info", "readme"), level = 3,
 3 (default), 4, or 5.}
 
 \item{phase}{What phase of data is desired, 1 of 2?  Currently
-only 1 is supported.}
+only 1 is supported. Phase 2 files may be used with this package,
+but must be downloaded manually.  Phase 2 support planned for next 
+update.}
 
 \item{prompt}{Warn before downloading huge files?  Default is
 FALSE.}

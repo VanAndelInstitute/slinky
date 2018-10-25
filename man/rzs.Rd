@@ -7,10 +7,10 @@
 \title{rzs}
 \usage{
 rzs(x, treat, control = "auto", where_clause = list(), gold = TRUE,
-  inferred = TRUE, verbose = FALSE, ...)
+  inferred = TRUE, byplate = TRUE, verbose = FALSE, ...)
 
 \S4method{rzs}{Slinky}(x, treat, control = "auto", where_clause = list(),
-  gold = TRUE, inferred = TRUE, verbose = FALSE, ...)
+  gold = TRUE, inferred = TRUE, byplate = TRUE, verbose = FALSE, ...)
 }
 \arguments{
 \item{x}{An object of class Slinky}
@@ -31,6 +31,12 @@ LINCS. Ignored if treat and control are SummarizedExperiments.}
 
 \item{inferred}{Should the inferred (non-landmark) genes be
 included in the analysis? Default is TRUE.}
+
+\item{byplate}{Do you want to split the scores by plate? This is 
+usually wise, unless you have already subsetted \code{treat} and 
+\code{control} samples in such a way that plate can safely be ignored, 
+or if \code{treat} and \code{control} must come from different plates 
+for some reason. Default is TRUE.}
 
 \item{verbose}{Do you want to know how things are going?
 Default is FALSE.}

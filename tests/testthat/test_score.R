@@ -28,7 +28,17 @@ test_that("Robust z-scores can be calculated correctly", {
   zs2 <- rzs(sl, treat = "amoxicillin")
   expect_equal(as.numeric(zs), as.numeric(zs2[,5]))
 })
+test_that("Scoring on landmark genes only works.", {
+  skip_if_devel()
+  zs2 <- rzs(sl, treat = "amoxicillin", inferred = FALSE)
+  zs <- rzs(sl, treat = "amoxicillin", inferred = TRUE)
+  expect(all.equal(zs[1:978, ], zs2))
+  expect(nrow(zs2), 978)
+})
+
+zs2 <- rzs(sl, treat = "amoxicillin", inferred = FALSE)
 test_that("Characteristic direction can be calculated by plate", {
+  skip_if_devel()
   cd_vecs <- diffexp(sl, treat = "E2F3",
                      where_clause = list("pert_type" = "trt_sh",
                                          "cell_id" = "MCF7"),

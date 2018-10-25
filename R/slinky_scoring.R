@@ -104,7 +104,12 @@ setMethod("diffexp", signature(x = "Slinky"),
                    verbose = FALSE,
                    ...)
           {
-
+            if (inferred){
+              row.ix <- seq_len(nrow(x))
+            } else {
+              row.ix <- seq_len(min(nrow(x), 978))
+            }
+            
             if (is(treat, "character")) {
 
               where_clause$pert_iname = treat
@@ -116,7 +121,7 @@ setMethod("diffexp", signature(x = "Slinky"),
               fields <- c("rna_plate", "distil_id")
               if (verbose)
                 message("Loading data for 'treat' group.")
-              treat <- loadL1K(x,
+              treat <- loadL1K(x[row.ix, ],
                                where_clause = where_clause,
                                fields = fields,
                                inferred = inferred,
@@ -125,7 +130,7 @@ setMethod("diffexp", signature(x = "Slinky"),
                 message(paste0("\nLoaded ", ncol(treat), " treated samples."))
               
             } else if (is(treat, "Slinky")) {
-              treat <- as(treat, "SummarizedExperiment")
+              treat <- as(treat[row.ix, ], "SummarizedExperiment")
             } else if (!is(treat, "SummarizedExperiment")) {
               stop(
                 "diffexp expects either the pert_iname of the perturbagen, ",
@@ -137,10 +142,10 @@ setMethod("diffexp", signature(x = "Slinky"),
               if (control == "auto") {
                 if (verbose)
                   message("\nLocating and loading control samples.")
-                ids <- controls(x,
+                ids <- controls(x[row.ix, ],
                                 treat$distil_id,
                                 verbose = verbose)$distil_id
-                control <- loadL1K(x[, which(colnames(x) %in% ids)], 
+                control <- loadL1K(x[row.ix, which(colnames(x) %in% ids)], 
                           inferred = inferred)
                 if (verbose)
                   message(paste0("\nLoaded ",
@@ -154,7 +159,7 @@ setMethod("diffexp", signature(x = "Slinky"),
                 
                 if (verbose)
                   message("Loading data for 'control' group.")
-                control <- loadL1K(x,
+                control <- loadL1K(x[row.ix, ],
                                    where_clause = where_clause,
                                    fields = fields,
                                    inferred = inferred,
@@ -164,7 +169,7 @@ setMethod("diffexp", signature(x = "Slinky"),
                   message(paste0("Loaded ", ncol(control), " control samples."))
               }
             } else if (is(control, "Slinky")) {
-              control <- as(control, "SummarizedExperiment")
+              control <- as(control[row.ix, ], "SummarizedExperiment")
             } else if (!is(control, "SummarizedExperiment")) {
               stop(
                 "diffexp expects either the pert_iname of the perturbagen, ",
@@ -179,15 +184,15 @@ setMethod("diffexp", signature(x = "Slinky"),
               if (split_by_plate) {
                 rna_plate <- NULL # prevent no visible binding on R CMD CHECK
                 . <- NULL # prevent no visible binding on R CMD CHECK
-                cds <- as.data.frame(SummarizedExperiment::colData(treat)) %>%
+                cds <- as.data.frame(SummarizedExperiment::colData(treat[row.ix, ])) %>%
                   dplyr::group_by(rna_plate) %>%
                   dplyr::do(cd =
-                    chDir(x, treat[, which(treat$rna_plate %in% .$rna_plate)],
-                    control[, which(control$rna_plate %in% .$rna_plate)]))
+                    chDir(x, treat[row.ix, which(treat$rna_plate %in% .$rna_plate)],
+                    control[row.ix , which(control$rna_plate %in% .$rna_plate)]))
                 # flatten structure to matrix
                 cds <- do.call(cbind, cds$cd) %>% `colnames<-`(cds$rna_plate)
               } else {
-                cds = chDir(x, treat, control)
+                cds = chDir(x, treat[row.ix, ], control[row.ix, ])
               }
               return(cds)
             } else if (method == "ks") {
@@ -197,7 +202,7 @@ setMethod("diffexp", signature(x = "Slinky"),
                 warning("Method ks does not support split_by_plate option. ",
                         "Ignoring. ")
               }
-              zs <- rzs(x, treat, control)
+              zs <- rzs(x, treat[row.ix, ], control[row.ix, ])
               return(ks(x, zs))
             } else {
               stop("Only 'cd' and 'ks' are currently supported by diffexp.")
@@ -221,6 +226,11 @@ setMethod("diffexp", signature(x = "Slinky"),
 #'     LINCS. Ignored if treat and control are SummarizedExperiments.
 #' @param inferred  Should the inferred (non-landmark) genes be
 #'     included in the analysis? Default is TRUE.
+#' @param byplate  Do you want to split the scores by plate? This is 
+#'     usually wise, unless you have already subsetted \code{treat} and 
+#'     \code{control} samples in such a way that plate can safely be ignored, 
+#'     or if \code{treat} and \code{control} must come from different plates 
+#'     for some reason. Default is TRUE.
 #' @param verbose  Do you want to know how things are going?
 #'     Default is FALSE.
 #' @param ...  Additional arguments for \code{method}.
@@ -240,6 +250,7 @@ setGeneric("rzs",
                     where_clause = list(),
                     gold = TRUE,
                     inferred = TRUE,
+                    byplate = TRUE,
                     verbose = FALSE,
                     ...) {
              standardGeneric("rzs")
@@ -267,9 +278,16 @@ setMethod("rzs", signature(x = "Slinky"),
                    where_clause = list(),
                    gold = TRUE,
                    inferred = TRUE,
+                   byplate = TRUE,
                    verbose = FALSE,
                    ...)
           {
+            if (inferred){
+              row.ix <- seq_len(nrow(x))
+            } else {
+              row.ix <- seq_len(min(nrow(x), 978))
+            }
+            
             if (is(treat, "character")) {
               where_clause$pert_iname = treat
               
@@ -280,7 +298,7 @@ setMethod("rzs", signature(x = "Slinky"),
               fields <- c("rna_plate", "distil_id")
               if (verbose)
                 message("Loading data for 'treat' group.")
-              treat <- loadL1K(x,
+              treat <- loadL1K(x[row.ix,],
                                where_clause = where_clause,
                                fields = fields,
                                verbose = verbose)
@@ -288,13 +306,14 @@ setMethod("rzs", signature(x = "Slinky"),
                 message(paste0("\nLoaded ", ncol(treat), " treated samples."))
               
             } else if (is(treat,  "Slinky")) {
-              treat <- as(treat, "SummarizedExperiment")
+              treat <- as(treat[row.ix, ], "SummarizedExperiment")
             } else if (!is(treat, "SummarizedExperiment")) {
               stop(
                 "rzs expects either the pert_iname of the perturbagen ",
                 "or a SummarizedExperiment Set for the 'treat' dataset"
               )
             }
+
             if (is(control, "character")) {
               if (control == "auto") {
                 if (verbose)
@@ -303,12 +322,8 @@ setMethod("rzs", signature(x = "Slinky"),
                                 treat$distil_id,
                                 verbose = verbose)$distil_id
                 
-                if (!inferred) {
-                  control <- loadL1K(x[seq_len(978), 
+                  control <- loadL1K(x[row.ix, 
                                        which(colnames(x) %in% ids)])
-                } else {
-                  control <- loadL1K(x[, which(colnames(x) %in% ids)])
-                }
                 if (verbose)
                   message(paste0("\nLoaded ",
                                  ncol(control),
@@ -322,7 +337,7 @@ setMethod("rzs", signature(x = "Slinky"),
                 if (verbose)
                   message("Loading data for 'control' group.")
                 
-                control <- loadL1K(x,
+                control <- loadL1K(x[row.ix, ],
                                    where_clause = where_clause,
                                    fields = fields,
                                    verbose = verbose)
@@ -331,7 +346,7 @@ setMethod("rzs", signature(x = "Slinky"),
                                  " control samples."))
               }
             } else if (is(control, "Slinky")) {
-              control <- as(control, "SummarizedExperiment")
+              control <- as(control[row.ix, ], "SummarizedExperiment")
             } else if (!is(control, "SummarizedExperiment")) {
               stop(
                 "rzs expects either 'auto', the pert_iname of the perturbagen or",
@@ -340,14 +355,19 @@ setMethod("rzs", signature(x = "Slinky"),
             }
             rna_plate <- NULL # prevent no visible binding on R CMD CHECK
             . <- NULL # prevent no visible binding on R CMD CHECK
-            zs <- as.data.frame(SummarizedExperiment::colData(treat)) %>%
-              dplyr::group_by(rna_plate) %>%
-              dplyr::do(z = 
-              .zs(assays(treat)[[1]][, which(treat$rna_plate %in% .$rna_plate)],
-              assays(control)[[1]][, which(control$rna_plate %in% .$rna_plate)])
-              )
-            # flatten structure to matrix
-            do.call(cbind, zs$z) %>% `colnames<-`(base::colnames(treat))
+            if (byplate) {
+              zs <- as.data.frame(SummarizedExperiment::colData(treat)) %>%
+                dplyr::group_by(rna_plate) %>%
+                dplyr::do(z = 
+                            .zs(assays(treat)[[1]][, which(treat$rna_plate %in% .$rna_plate)],
+                                assays(control)[[1]][, which(control$rna_plate %in% .$rna_plate)])
+                )
+              # flatten structure to matrix
+              zs <- do.call(cbind, zs$z) %>% `colnames<-`(base::colnames(treat))
+            } else {
+              zs <- .zs(assays(treat)[[1]], assays(control)[[1]])
+            }
+            zs
           })
 
 

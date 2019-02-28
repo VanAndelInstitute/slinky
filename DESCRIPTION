@@ -1,7 +1,11 @@
 Package: slinky
 Type: Package
 Title: Putting the fun in LINCS L1000 data analysis
+<<<<<<< HEAD
 Version: 1.0.1
+=======
+Version: 1.1.1
+>>>>>>> f831561... bug fix: clue cell api field label change
 Date: 2018-09 -21
 Author: Eric J. Kort
 Maintainer: Eric J. Kort  <eric.kort@vai.org>

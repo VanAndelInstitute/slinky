@@ -29,7 +29,7 @@ context("Cells API")
 test_that("Cell lines can be retrieved by iname", {
   skip_if_devel()
   tt <- clue(sl, "cells", fields = c("cell_iname", "cell_lineage"),
-                 where_clause = list("cell_id" = list(like = "^A3")))
+                 where_clause = list("cell_iname" = list(like = "^A3")))
   expect_equal(nrow(tt),  3)
 })
 

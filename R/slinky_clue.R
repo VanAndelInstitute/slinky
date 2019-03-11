@@ -59,7 +59,8 @@ setGeneric("clue",
                                             "plates",
                                             "profiles",
                                             "rep_drugs",
-                                            "pcls"),
+	                                          "rep_drug_indications",
+	                                          "pcls"),
                                fields = "",
                                where_clause = NULL,
                                ids = NULL,
@@ -83,6 +84,7 @@ function(x, endpoint = c("sigs",
                                             "perts",
                                             "plates",
                                             "profiles",
+                                            "rep_drug_indications",
                                             "rep_drugs",
                                             "pcls"),
                                fields = "",
@@ -396,6 +398,7 @@ setGeneric("clueCount",
                                                  "plates",
                                                  "profiles",
                                                  "rep_drugs",
+                      	                         "rep_drug_indications",
                                                  "pcls"),
                                     where_clause = "") {
 	standardGeneric("clueCount")
@@ -426,6 +429,7 @@ function(x, endpoint = c("sigs",
                                                  "plates",
                                                  "profiles",
                                                  "rep_drugs",
+                                                 "rep_drug_indications",
                                                  "pcls"),
                                     where_clause = "") 
 {
@@ -443,6 +447,9 @@ function(x, endpoint = c("sigs",
   } else {
     query = list(user_key = key)
   }
+  
+
+  #  https://api.clue.io/api/rep_drugs/count?where=%7B%22pert_iname%22%3A%22tacrolimus%22%7D&user_key=MYSUSERKEY
   res <- httr::GET(
     url = base,
     path = paste0("api/", endpoint, "/count"),

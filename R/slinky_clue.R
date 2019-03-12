@@ -75,7 +75,7 @@ setGeneric("clue",
 )
 #' @rdname clue
 #' @exportMethod clue
-#' @importFrom dplyr bind_rows
+#' @importFrom dplyr bind_rows %>%
 #' @aliases clue,Slinky-method
 setMethod("clue", signature(x = "Slinky"),
 function(x, endpoint = c("sigs",

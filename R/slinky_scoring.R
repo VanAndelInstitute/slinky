@@ -90,6 +90,7 @@ setGeneric("diffexp",
 #'                     verbose = FALSE)
 #' }
 #' @rdname diffexp
+#' @importFrom dplyr %>%
 #' @exportMethod diffexp
 #' @aliases diffexp,Slinky-method
 setMethod("diffexp", signature(x = "Slinky"),
@@ -256,6 +257,7 @@ setGeneric("rzs",
              standardGeneric("rzs")
            })
 #' @rdname rzs
+#' @importFrom dplyr %>%
 #' @exportMethod rzs
 #' @aliases rzs,Slinky-method
 #' @examples 
@@ -393,6 +395,7 @@ setMethod("rzs", signature(x = "Slinky"),
 #' @return A vector of z-scores.
 #'
 #' @name .zs
+#' @importFrom dplyr %>%
 #' @rdname slinky-internal
 .zs <- function(treat, control) {
   "Internal function for converting expression values to robust  z-scores"

@@ -32,6 +32,46 @@ setMethod("metadata", signature(x = "Slinky"),
           })            
 
 
+#' get_metadata
+#' 
+#' The accessor function retrieves metadata from Slinky object. 
+#' 
+#' As it turns out `metadata` was a poor choice for the accessor 
+#' function because it can be masked if the user loads the 
+#' `SummarizedExperiment` package after slinky.  So this provides 
+#' an alternative.  Eventually `slinky::metadata` should be deprecated.
+#' 
+#' @param x a Slinky object
+#' @return The accessor function returns a \code{data.frame} 
+#' containing the metadata.
+#'
+#' @name get_metadata
+#' @rdname get_metadata
+setGeneric("get_metadata", function(x) standardGeneric("get_metadata"))
+#' @examples
+#' # for build/demo only.  You MUST use your own key when using the slinky
+#' # package.
+#' user_key <- httr::content(httr::GET('https://api.clue.io/temp_api_key'),
+#'                           as='parsed')$user_key
+#' sl <- Slinky(user_key,
+#'                  system.file('extdata', 'demo.gctx',
+#'                       package='slinky'),
+#'                  system.file('extdata', 'demo_inst_info.txt',
+#'                      package = 'slinky'))
+#' md <- get_metadata(sl[, 1:10])
+#' 
+#' @rdname get_metadata
+#' @exportMethod get_metadata
+#' @aliases get_metadata,Slinky-method
+#' @rdname get_metadata
+setMethod("get_metadata", signature(x = "Slinky"),
+          function(x) 
+          {
+            return(x@metadata)
+          })            
+
+
+
 #' Non-exported functions from the slinky package.
 #' 
 #' .loadInfo is an internal function to load the info file into memory if 
@@ -256,7 +296,7 @@ setGeneric("controls",
 #' @exportMethod controls
 #' @aliases controls,Slinky-method
 #' @import foreach
-#' @importFrom dplyr group_by summarize
+#' @importFrom dplyr group_by summarize %>%
 setMethod("controls", signature(x = "Slinky"),
           function(x, ids, verbose = FALSE, cl = NULL) 
           {

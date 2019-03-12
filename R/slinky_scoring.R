@@ -298,10 +298,23 @@ setMethod("rzs", signature(x = "Slinky"),
               fields <- c("rna_plate", "distil_id")
               if (verbose)
                 message("Loading data for 'treat' group.")
-              treat <- loadL1K(x[row.ix,],
-                               where_clause = where_clause,
-                               fields = fields,
-                               verbose = verbose)
+              tryCatch({
+                treat <- loadL1K(x[row.ix,],
+                                 where_clause = where_clause,
+                                 fields = fields,
+                                 verbose = verbose)
+                },
+                error = function(e) {
+                  stop(e)
+                },
+                warning = function(w) {
+                  if(grepl("no results", w$message)) {
+                    stop(paste0("No treated instances found for ", treat, " and is_gold=", gold))
+                  } else {
+                    stop(paset0("Unexpected error when loading treted instances: ", w$message))
+                  }
+                }
+              )
               if (verbose)
                 message(paste0("\nLoaded ", ncol(treat), " treated samples."))
               
@@ -318,6 +331,7 @@ setMethod("rzs", signature(x = "Slinky"),
               if (control == "auto") {
                 if (verbose)
                   message("\nLocating and loading control samples.")
+
                 ids <- controls(x,
                                 treat$distil_id,
                                 verbose = verbose)$distil_id

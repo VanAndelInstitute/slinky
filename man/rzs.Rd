@@ -9,8 +9,9 @@
 rzs(x, treat, control = "auto", where_clause = list(), gold = TRUE,
   inferred = TRUE, byplate = TRUE, verbose = FALSE, ...)
 
-\S4method{rzs}{Slinky}(x, treat, control = "auto", where_clause = list(),
-  gold = TRUE, inferred = TRUE, byplate = TRUE, verbose = FALSE, ...)
+\S4method{rzs}{Slinky}(x, treat, control = "auto",
+  where_clause = list(), gold = TRUE, inferred = TRUE,
+  byplate = TRUE, verbose = FALSE, ...)
 }
 \arguments{
 \item{x}{An object of class Slinky}

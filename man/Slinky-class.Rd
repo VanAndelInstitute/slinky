@@ -6,7 +6,8 @@
 \alias{Slinky}
 \title{An S4 class for working with LINCS data}
 \usage{
-Slinky(user_key = character(), gctx = character(), info = character())
+Slinky(user_key = character(), gctx = character(),
+  info = character())
 }
 \arguments{
 \item{user_key}{clue.io API key}
@@ -24,14 +25,6 @@ data files as well as access credentials for the clue.io API (if desired).
 It provides methods for querying and loading data from these resources.
 The helper function \code{\link{Slinky}} is a simpler way to construct 
 an object of this class
-
-The \code{Slinky()} constructor returns a slinky object with defaults 
-set where required. To access the clue.io API, you must either provide 
-your key as the value for the arguemtn \code{user_key}, or set the 
-CLUE_API_KEY environment variable prior to starting your R session.  
-If no clue.io API access is required, simply specify \code{user_key = ""}. 
-If \code{info} is not specified, it will be assumed that the file 
-GSE92742_Broad_LINCS_inst_info.txt.gz is present in the working directory.
 }
 \section{Slots}{
 

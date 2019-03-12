@@ -11,6 +11,7 @@ Description: Wrappers to query the L1000 metadata available via the clue.io
     some facilities for performing streamlined differential expression 
     analysis of these data sets.
 License: MIT + file LICENSE
+Encoding: UTF-8
 Depends:
     R (>= 3.5.0)
 Imports:
@@ -47,7 +48,7 @@ Suggests:
     Biobase,
     BiocStyle
 VignetteBuilder: knitr
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 LazyData: true
 biocViews: DataImport, ThirdPartyClient, GeneExpression, 
     DifferentialExpression, GeneSetEnrichment, PatternLogic

@@ -6,14 +6,15 @@
 \alias{loadL1K,Slinky-method}
 \title{loadL1K}
 \usage{
-loadL1K(x, ids = character(), pert = character(), cell_line = character(),
-  type = NULL, where_clause = character(), gold = TRUE, inferred = TRUE,
-  fields = character(), controls = FALSE, cl = NULL, verbose = FALSE)
+loadL1K(x, ids = character(), pert = character(),
+  cell_line = character(), type = NULL, where_clause = character(),
+  gold = TRUE, inferred = TRUE, fields = character(),
+  controls = FALSE, cl = NULL, verbose = FALSE)
 
 \S4method{loadL1K}{Slinky}(x, ids = character(), pert = character(),
   cell_line = character(), type = NULL, where_clause = character(),
-  gold = FALSE, inferred = TRUE, fields = character(), controls = FALSE,
-  cl = NULL, verbose = FALSE)
+  gold = FALSE, inferred = TRUE, fields = character(),
+  controls = FALSE, cl = NULL, verbose = FALSE)
 }
 \arguments{
 \item{x}{A slinky object}

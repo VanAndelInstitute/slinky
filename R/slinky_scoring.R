@@ -313,7 +313,7 @@ setMethod("rzs", signature(x = "Slinky"),
                   if(grepl("no results", w$message)) {
                     stop(paste0("No treated instances found for ", treat, " and is_gold=", gold))
                   } else {
-                    stop(paset0("Unexpected error when loading treted instances: ", w$message))
+                    stop(paste0("Unexpected error when loading treated instances: ", w$message))
                   }
                 }
               )

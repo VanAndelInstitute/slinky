@@ -4,7 +4,6 @@
 \name{download}
 \alias{download}
 \alias{download,Slinky-method}
-\alias{download}
 \title{download}
 \usage{
 download(x, type = c("expression", "info", "readme"), level = 3,

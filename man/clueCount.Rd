@@ -4,14 +4,15 @@
 \name{clueCount}
 \alias{clueCount}
 \alias{clueCount,Slinky-method}
-\alias{clueCount}
 \title{clueCount}
 \usage{
 clueCount(x, endpoint = c("sigs", "cells", "genes", "perts", "plates",
-  "profiles", "rep_drugs", "pcls"), where_clause = "")
+  "profiles", "rep_drugs", "rep_drug_indications", "pcls"),
+  where_clause = "")
 
 \S4method{clueCount}{Slinky}(x, endpoint = c("sigs", "cells", "genes",
-  "perts", "plates", "profiles", "rep_drugs", "pcls"), where_clause = "")
+  "perts", "plates", "profiles", "rep_drugs", "rep_drug_indications",
+  "pcls"), where_clause = "")
 }
 \arguments{
 \item{x}{a Slinky Object}

@@ -6,9 +6,9 @@
 \alias{diffexp,Slinky-method}
 \title{diffexp}
 \usage{
-diffexp(x, treat, control = "auto", method = "cd", split_by_plate = FALSE,
-  where_clause = list(), gold = TRUE, inferred = TRUE, verbose = FALSE,
-  ...)
+diffexp(x, treat, control = "auto", method = "cd",
+  split_by_plate = FALSE, where_clause = list(), gold = TRUE,
+  inferred = TRUE, verbose = FALSE, ...)
 
 \S4method{diffexp}{Slinky}(x, treat, control = "auto", method = "cd",
   split_by_plate = FALSE, where_clause = list(), gold = TRUE,

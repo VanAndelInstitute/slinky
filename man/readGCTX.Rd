@@ -4,7 +4,6 @@
 \name{readGCTX}
 \alias{readGCTX}
 \alias{readGCTX,Slinky-method}
-\alias{readGCTX}
 \title{readGCTX}
 \usage{
 readGCTX(x)

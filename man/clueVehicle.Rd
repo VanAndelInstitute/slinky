@@ -4,7 +4,6 @@
 \name{clueVehicle}
 \alias{clueVehicle}
 \alias{clueVehicle,Slinky-method}
-\alias{clueVehicle}
 \title{clueVehicle}
 \usage{
 clueVehicle(x, ids, verbose = FALSE)

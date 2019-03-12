@@ -6,16 +6,17 @@
 \alias{clue,Slinky-method}
 \title{clue}
 \usage{
-clue(x, endpoint = c("sigs", "cells", "genes", "perts", "plates", "profiles",
-  "rep_drugs", "pcls"), fields = "", where_clause = NULL, ids = NULL,
-  limit = 0, count = FALSE, unpack_sigs = TRUE, poscon = c("omit",
-  "keep"), cl = NULL, verbose = FALSE)
-
-\S4method{clue}{Slinky}(x, endpoint = c("sigs", "cells", "genes", "perts",
-  "plates", "profiles", "rep_drugs", "pcls"), fields = "",
+clue(x, endpoint = c("sigs", "cells", "genes", "perts", "plates",
+  "profiles", "rep_drugs", "rep_drug_indications", "pcls"), fields = "",
   where_clause = NULL, ids = NULL, limit = 0, count = FALSE,
   unpack_sigs = TRUE, poscon = c("omit", "keep"), cl = NULL,
   verbose = FALSE)
+
+\S4method{clue}{Slinky}(x, endpoint = c("sigs", "cells", "genes",
+  "perts", "plates", "profiles", "rep_drugs", "rep_drug_indications",
+  "pcls"), fields = "", where_clause = NULL, ids = NULL, limit = 0,
+  count = FALSE, unpack_sigs = TRUE, poscon = c("omit", "keep"),
+  cl = NULL, verbose = FALSE)
 }
 \arguments{
 \item{x}{a Slinky Object}

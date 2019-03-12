@@ -4,14 +4,13 @@
 \name{clueInstances}
 \alias{clueInstances}
 \alias{clueInstances,Slinky-method}
-\alias{clueInstances}
 \title{clueInstances}
 \usage{
-clueInstances(x, where_clause = NULL, verbose = FALSE, poscon = c("omit",
-  "keep"))
-
-\S4method{clueInstances}{Slinky}(x, where_clause = NULL, verbose = FALSE,
+clueInstances(x, where_clause = NULL, verbose = FALSE,
   poscon = c("omit", "keep"))
+
+\S4method{clueInstances}{Slinky}(x, where_clause = NULL,
+  verbose = FALSE, poscon = c("omit", "keep"))
 }
 \arguments{
 \item{x}{a Slinky Object}

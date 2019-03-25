@@ -61,6 +61,11 @@ setClass("Slinky",
 #' If no clue.io API access is required, simply specify \code{user_key = ""}. 
 #' If \code{info} is not specified, it will be assumed that the file 
 #' GSE92742_Broad_LINCS_inst_info.txt.gz is present in the working directory.
+#' If \code{gctx} is not specified, then you can still use the clue.io api 
+#' and metadata searching functionalities of the package, but of course no 
+#' data can be loaded. This is useful if you do not have a local copy of 
+#' the large gctx file but still want to run queries. Note that this last 
+#' use case is still experimental.
 #' @param  user_key clue.io API key
 #' @param  info info file containing metadata (optional)
 #' @param  gctx gctx containing expression data (optional)
@@ -89,12 +94,15 @@ Slinky = function(user_key = character(),
     info <- "GSE92742_Broad_LINCS_inst_info.txt.gz"
   }
   
-  meta <- rhdf5::h5dump(gctx, load = FALSE)
-  rhdf5::h5closeAll()
-  ncol <- meta$`0`$META$COL$id$dim
-  nrow <- meta$`0`$META$ROW$id$dim
-  index <- list(seq_len(nrow), seq_len(ncol))
-  
+  if  (length(gctx)) {
+    meta <- rhdf5::h5dump(gctx, load = FALSE)
+    rhdf5::h5closeAll()
+    ncol <- meta$`0`$META$COL$id$dim
+    nrow <- meta$`0`$META$ROW$id$dim
+    index <- list(seq_len(nrow), seq_len(ncol))
+  } else {
+    index <- list(0, 0)
+  }
   base <- "https://api.clue.io"
   x <- new("Slinky", 
       user_key = user_key, 

@@ -105,7 +105,7 @@ note that these datafiles are quite large (up to 40GB). A robust multithreaded d
 client makes this much faster and less prone to failures due to connectivity
 hiccups.  For example, you might try:
 
-```{r eval=FALSE}
+```{bash, eval=FALSE}
 # bash
 aria2c -x 8 -s 8 https://goo.gl/3TigFI
 gzip -d *.gz

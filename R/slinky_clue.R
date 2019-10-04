@@ -365,7 +365,7 @@ function(x, where_clause = NULL,
     verbose = verbose
   )
   ids <- as.character(unlist(vapply(ids[, 1], function(x) {
-    strsplit(x, "\\|")
+    list(strsplit(x, "\\|"))
   }, list("a"))))
   
   if (poscon == "omit") {

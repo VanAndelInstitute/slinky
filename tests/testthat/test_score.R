@@ -32,8 +32,8 @@ test_that("Scoring on landmark genes only works.", {
   skip_if_devel()
   zs2 <- rzs(sl, treat = "amoxicillin", inferred = FALSE)
   zs <- rzs(sl, treat = "amoxicillin", inferred = TRUE)
-  expect(all.equal(zs[1:978, ], zs2))
-  expect(nrow(zs2), 978)
+  expect(all.equal(zs[1:978, ], zs2), "zzcores not equal")
+  expect(nrow(zs2), 978, "zscores nrow not 978")
 })
 
 zs2 <- rzs(sl, treat = "amoxicillin", inferred = FALSE)

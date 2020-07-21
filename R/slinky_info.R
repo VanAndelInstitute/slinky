@@ -145,15 +145,20 @@ setMethod(".loadInfo", signature(x = "Slinky"),
                 ix <- match(paste(gctx.trt, gctx.plate), paste(info.trt, info.plate))
                 md <- md[ix,]
                 md$inst_id <- cn
+              } else if (grepl("REP\\.", cn[1])) { # level5 phase II
+                id <- gsub("_X.*:", ":", md$inst_id)
+                ix <- match(cn, id)
+                md <- md[ix,]
+                md$inst_id <- cn
               } else {
                 cn <- colnames(x)
                 ix <- match(cn, ids)
                 md <- md[ix,]
+              }
                 if (!all.equal(as.character(cn), as.character(md$inst_id)))
                   stop("inst_ids in info file did not match colnames of gctx ",
                        "file.  \nPlease ensure info file containes metadata for ", 
                        "all columns of gctx file.")
-              }
             }
             md
           })

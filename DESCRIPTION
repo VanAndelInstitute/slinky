@@ -1,7 +1,7 @@
 Package: slinky
 Type: Package
 Title: Putting the fun in LINCS L1000 data analysis
-Version: 1.4.1
+Version: 1.12.1
 Date: 2019-10-04
 Authors@R: person("Eric", "Kort", email = "eric.kort@vai.org",role = c("aut", "cre"))
 Description: Wrappers to query the L1000 metadata available via the clue.io 

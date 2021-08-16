@@ -18,8 +18,6 @@ test_that("A gene can be retrieved", {
 })
 test_that("Limit working correctly on genes API", {
   skip_if_devel()
-  tt <- clue(sl, "genes", where_clause = list(gene_symbol = "TP53"))
-  expect_equal(nrow(tt), 1)
   tt <- clue(sl, "genes", fields = c("entrez_id", "gene_symbol",
                                   "gene_name"), limit = 20)
   expect_equal(nrow(tt), 20)
@@ -64,7 +62,7 @@ test_that("Correct controls are selected", {
   data <- rhdf5::h5read(gctx, name = "0/DATA/0/matrix")
   coln <- rhdf5::h5read(gctx, name = "0/META/COL/id" )
   data.ctrl <- data[, match(ids.ctrl, coln)]
-  ids.ctrl2 <- controls(sl, 
+  ids.ctrl2 <- controls(sl,
                         metadata(sl[,seq_len(5)])$distil_id)$distil_id
   expect_equal(as.character(ids.ctrl2), as.character(ids.ctrl))
 })

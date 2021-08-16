@@ -5,9 +5,9 @@
 }
 
 #' clue
-#' 
+#'
 #' Wrapper for clue.io REST calls
-#' 
+#'
 #' @param x a Slinky Object
 #' @param endpoint  The endpoint to query.  Default is 'sigs'.
 #' @param fields  Optional vector of fields to return.
@@ -21,9 +21,9 @@
 #' @param poscon  Instances of type \code{trt_poscon} are recoded
 #'    as \code{trt_cp} in clue.io's \code{sigs} endpoint.
 #'    This can lead to unexpected results downstream.  To keep these
-#'    instances, specify \code{poscon='keep'} 
+#'    instances, specify \code{poscon='keep'}
 #' @param limit  Optional limit to number of instances (samples to return
-#' @param count  Should we just return the count of intances satisfying 
+#' @param count  Should we just return the count of intances satisfying
 #'    the query rather than the data? Default is FALSE.
 #' @param cl  Optional cluster object to parallelize this
 #'    operation. If verbose is TRUE, use this pattern in order for
@@ -48,7 +48,7 @@
 #'                       package='slinky'),
 #'                  system.file('extdata', 'demo_inst_info.txt',
 #'                      package = 'slinky'))
-#' amox <- clue(sl, where_clause = list("pert_iname" = "amoxicillin", 
+#' amox <- clue(sl, where_clause = list("pert_iname" = "amoxicillin",
 #'                                     "cell_id" = "MCF7",
 #'                                     "is_gold" = TRUE))
 setGeneric("clue",
@@ -87,7 +87,7 @@ function(x, endpoint = c("sigs",
                                             "rep_drugs",
                                             "rep_drug_indications",
                                             "pcls"),
-                               fields = "",
+                               fields = NULL,
                                where_clause = NULL,
                                ids = NULL,
                                limit = 0,
@@ -95,21 +95,21 @@ function(x, endpoint = c("sigs",
                                unpack_sigs = TRUE,
                                poscon = c("omit", "keep"),
                                cl = NULL,
-                               verbose = FALSE) 
+                               verbose = FALSE)
 {
 
-  
+
   if (!.checkClue()) {
     stop("Could not connect to clue.io APi.  Please verify connecivity.")
   }
-  
+
   if (sum(length(ids) & count & length(where_clause)) > 1) {
     stop(
       "In call to Slinky$clue, the ids, where_clause, and count arguments
       are mutually exclusive.  Ensure only 1 provided."
     )
   }
-  
+
   if (length(ids) && !endpoint %in% c("sigs", "profiles")) {
     stop("Specifying id list currently only supported for sigs and ",
          "profiles endpoints")
@@ -118,7 +118,7 @@ function(x, endpoint = c("sigs",
   poscon <- match.arg(poscon)
   key <- x@user_key
   base <- x@base
-  
+
   if (count) {
     return(clueCount(x, endpoint, where_clause))
   } else {
@@ -128,22 +128,22 @@ function(x, endpoint = c("sigs",
       count <- clueCount(x, endpoint, where_clause)
     }
   }
-  
+
   if (count == 0)
     return(NULL)
-  
+
   if (limit > 0) {
     count <- min(limit, count)
   } else {
     limit <- count
   }
-  
+
   if (length(cl)) {
     doParallel::registerDoParallel(cl)
   } else {
     foreach::registerDoSEQ()
   }
-  
+
   # we cannot retrieve more than 1000 records at a time, nor can we send
   # more than 1000 ids in an inq statement so throttle to 1000 records per
   # request, unless user has requested fewer
@@ -162,30 +162,30 @@ function(x, endpoint = c("sigs",
       style = 3
     )
   }
-  
+
   if (poscon == "omit") {
     pc <- readRDS(system.file("extdata", "trt_poscon.rds",
                               package = "slinky"))
   }
-  
+
   i <- 0 # keep R CHECK happy.
-  
+
   dat <- foreach(
     i = seq_len(ceiling(count / 1000)),
     .combine = dplyr::bind_rows,
     .export = c("x"),
     .packages = c("httr", "jsonlite")) %dopar% {
-      
+
       if (verbose) {
         utils::setTxtProgressBar(pb, i)
       }
-      
+
       if (i * 1000 > limit) {
         lim_filter <- limit %% 1000
       }
-      
+
       ii <- (i - 1) * 1000
-      
+
       if (length(ids)) {
         where_clause = list("distil_id" =
                               list(inq = c(ids[seq(ii, ii + lim_filter)])))
@@ -199,7 +199,7 @@ function(x, endpoint = c("sigs",
           ids <- ids[-ix]
         }
       }
-      
+
       res <- httr::GET(
         url = x@base,
         path = paste0("api/", endpoint, "/"),
@@ -216,7 +216,7 @@ function(x, endpoint = c("sigs",
           user_key = key
         )
       )
-      
+
       # flatten the data structures to 2D
       fl <- lapply(httr::content(res, as = "parsed"),
                    function(x) {
@@ -243,10 +243,10 @@ function(x, endpoint = c("sigs",
 
 
 #' clueVehicle
-#' 
+#'
 #' Fetch the vehicle control applicable to given ids (distil_id).  Expects
 #'    that perturbagen is of type trt_cp.
-#'    
+#'
 #' @param x a Slinky Object
 #' @param ids  The distil_id(s) to lookup.
 #' @param verbose  Do you want to know how things are going?
@@ -254,7 +254,7 @@ function(x, endpoint = c("sigs",
 #' @return The name of the vehicle control for the queried
 #'    perturbagen(s).
 #'    This is a convenience wrapper to the profiles API
-#'    which queries clue.io and unwraps response. 
+#'    which queries clue.io and unwraps response.
 #' @name clueVehicle
 #' @rdname clueVehicle
 #' @examples
@@ -267,11 +267,11 @@ function(x, endpoint = c("sigs",
 #'                       package='slinky'),
 #'                  system.file('extdata', 'demo_inst_info.txt',
 #'                      package = 'slinky'))
-#' amox <- clue(sl, where_clause = list("pert_iname" = "amoxicillin", 
+#' amox <- clue(sl, where_clause = list("pert_iname" = "amoxicillin",
 #'                                     "cell_id" = "MCF7",
 #'                                     "is_gold" = TRUE))
 #' amox.ctrl <- clueVehicle(sl, amox$distil_id)
-#' 
+#'
 setGeneric("clueVehicle",
 	function(x, ids, verbose = FALSE) {
 	standardGeneric("clueVehicle")
@@ -281,16 +281,16 @@ setGeneric("clueVehicle",
 #' @exportMethod clueVehicle
 #' @aliases clueVehicle
 setMethod("clueVehicle", signature(x = "Slinky"),
-function(x, ids, verbose = FALSE) 
+function(x, ids, verbose = FALSE)
 {
 
-  
+
   if (length(ids) > 1) {
     where_clause = list(distil_id = list(inq = c(ids)))
   } else {
     where_clause = list(distil_id = ids)
   }
-  res <- clue(x, 
+  res <- clue(x,
     "profiles",
     fields = c("pert_id",
                "pert_iname", "pert_vehicle"),
@@ -303,10 +303,10 @@ function(x, ids, verbose = FALSE)
 
 
 #' clueInstances
-#' 
+#'
 #' Convenience wrapper to query function to retrieve instance ids meeting
 #'    specified criteria.
-#'    
+#'
 #' @param x a Slinky Object
 #' @param where_clause  Filter terms, as a list of terms, e.g.
 #'    \code{list(pert_type='trt_cp', 'is_gold'=TRUE)}.  Terms will be
@@ -316,10 +316,10 @@ function(x, ids, verbose = FALSE)
 #' @param poscon  Instances of type \code{trt_poscon} are recoded
 #'    as \code{trt_cp} in clue.io's \code{sigs} endpoint.
 #'    This can lead to unexpected results downstream.  To keep these
-#'    instances, specify \code{poscon='keep'} 
+#'    instances, specify \code{poscon='keep'}
 #' @return Vector of ids matching criteria.
 #'    This is a convenience wrapper to the signature API
-#'    which queries clue.io and unwraps response. 
+#'    which queries clue.io and unwraps response.
 #' @name clueInstances
 #' @rdname clueInstances
 setGeneric("clueInstances",
@@ -339,20 +339,20 @@ setGeneric("clueInstances",
 #'                       package='slinky'),
 #'                  system.file('extdata', 'demo_inst_info.txt',
 #'                      package = 'slinky'))
-#' amox_ids <- clueInstances(sl, where_clause = list("pert_iname" = "amoxicillin", 
+#' amox_ids <- clueInstances(sl, where_clause = list("pert_iname" = "amoxicillin",
 #'                                     "cell_id" = "MCF7",
 #'                                     "is_gold" = TRUE))
-#' 
+#'
 #' @rdname clueInstances
 #' @exportMethod clueInstances
 #' @aliases clueInstances
 setMethod("clueInstances", signature(x = "Slinky"),
 function(x, where_clause = NULL,
                                         verbose = FALSE,
-                                        poscon = c("omit", "keep")) 
+                                        poscon = c("omit", "keep"))
 {
 
-  
+
   if (!length(where_clause) && !length(ids)) {
     stop("The 'where_clause' argument must be specified.")
   }
@@ -367,7 +367,7 @@ function(x, where_clause = NULL,
   ids <- as.character(unlist(vapply(ids[, 1], function(x) {
     list(strsplit(x, "\\|"))
   }, list("a"))))
-  
+
   if (poscon == "omit") {
     pc <- readRDS(system.file("extdata", "trt_poscon.rds",
                               package = "slinky"))
@@ -380,9 +380,9 @@ function(x, where_clause = NULL,
 })
 
 #' clueCount
-#' 
+#'
 #' Wrapper for Slinky.io REST calls to retrieve record counts
-#' 
+#'
 #' @param x a Slinky Object
 #' @param endpoint  The endpoint to query, default is 'sigs'.
 #' @param where_clause  Optional where_clause clause.  Must be
@@ -414,10 +414,10 @@ setGeneric("clueCount",
 #'                       package='slinky'),
 #'                  system.file('extdata', 'demo_inst_info.txt',
 #'                      package = 'slinky'))
-#' amox_count <- clueCount(sl, where_clause = list("pert_iname" = "amoxicillin", 
+#' amox_count <- clueCount(sl, where_clause = list("pert_iname" = "amoxicillin",
 #'                                     "cell_id" = "MCF7",
 #'                                     "is_gold" = TRUE))
-#'                                     
+#'
 #' @rdname clueCount
 #' @exportMethod clueCount
 #' @aliases clueCount
@@ -431,10 +431,10 @@ function(x, endpoint = c("sigs",
                                                  "rep_drugs",
                                                  "rep_drug_indications",
                                                  "pcls"),
-                                    where_clause = "") 
+                                    where_clause = "")
 {
 
-  
+
   endpoint = match.arg(endpoint)
   key <- x@user_key
   base <- x@base
@@ -447,7 +447,7 @@ function(x, endpoint = c("sigs",
   } else {
     query = list(user_key = key)
   }
-  
+
 
   #  https://api.clue.io/api/rep_drugs/count?where=%7B%22pert_iname%22%3A%22tacrolimus%22%7D&user_key=MYSUSERKEY
   res <- httr::GET(
